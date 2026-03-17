@@ -7,10 +7,14 @@ checkpointing, early stopping, mixed precision, and comprehensive experiment tra
 from __future__ import annotations
 
 import importlib.util
-import time
 import logging
+import time
 from pathlib import Path
-from typing import Dict, Any, Optional, Tuple, List
+from typing import Any, Dict, List, Optional, Tuple
+
+import joblib  # type: ignore
+import mlflow
+import numpy as np
 
 # Optional PyTorch import
 try:
@@ -28,15 +32,11 @@ except ImportError:
 # Check TensorFlow availability
 TF_AVAILABLE = importlib.util.find_spec("tensorflow") is not None
 
-import numpy as np
-import mlflow
-import joblib  # type: ignore
-
 # Local imports
 from .models.classical import (
     LogisticRegressionModel,
-    SVMModel,
     RandomForestModel,
+    SVMModel,
     XGBoostModel,
 )
 from .models.transformers import TransformerModel
