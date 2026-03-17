@@ -23,7 +23,9 @@ try:
     TORCH_AVAILABLE = True
 except ImportError:
     TORCH_AVAILABLE = False
-    torch = None  # type: ignore
+    torch = None  # type: Any
+    DataLoader = None  # type: Any
+    optim = None  # type: Any
 
 # Optional TensorFlow import
 try:
@@ -379,6 +381,7 @@ class Trainer:
             if not TORCH_AVAILABLE:
                 raise RuntimeError("Transformer evaluation requires PyTorch")
             assert torch is not None
+            assert DataLoader is not None
             self.model.eval()
             if isinstance(test_dataset, DataLoader):
                 loader = test_dataset
