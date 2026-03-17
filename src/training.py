@@ -301,7 +301,6 @@ class Trainer:
                 val_metrics = compute_metrics(np.array(all_labels), np.array(all_preds))
                 val_metrics["val_loss"] = avg_val_loss
 
-            epoch_time = time.time() - epoch_start
             logger.info(
                 f"Epoch {epoch + 1}/{num_epochs} - Train loss: {avg_train_loss:.4f}"
                 + (f" - Val loss: {avg_val_loss:.4f}" if val_metrics else "")
