@@ -45,9 +45,9 @@ class BaselineModel:
         self.classifier = LogisticRegression(max_iter=1000, n_jobs=-1, random_state=42)
         self.is_fitted = False
 
-    def preprocess(self, texts: pd.Series) -> np.ndarray:
+    def preprocess(self, texts: pd.Series) -> Any:
         """Convert raw texts to TF-IDF features."""
-        return self.vectorizer.transform(texts)
+        return self.vectorizer.transform(texts)  # type: ignore
 
     def train(self, X_train: pd.Series, y_train: pd.Series) -> None:
         """
@@ -92,9 +92,9 @@ class BaselineModel:
 
         metrics = {
             "accuracy": accuracy_score(y_test, y_pred),
-            "precision": precision_score(y_test, y_pred, zero_division=0),
-            "recall": recall_score(y_test, y_pred, zero_division=0),
-            "f1": f1_score(y_test, y_pred, zero_division=0),
+            "precision": precision_score(y_test, y_pred, zero_division="warn"),
+            "recall": recall_score(y_test, y_pred, zero_division="warn"),
+            "f1": f1_score(y_test, y_pred, zero_division="warn"),
             "confusion_matrix": confusion_matrix(y_test, y_pred).tolist(),
         }
 
@@ -153,7 +153,7 @@ class BaselineModel:
             )
 
             # Log model
-            mlflow.sklearn.log_model(
+            mlflow.sklearn.log_model(  # type: ignore
                 self.classifier, "model", registered_model_name="baseline_logreg"
             )
 

@@ -3,7 +3,8 @@ Unified training CLI.
 """
 
 import argparse
-from .training import TrainingPipeline
+import yaml
+from .training import Trainer
 
 
 def main():
@@ -16,9 +17,13 @@ def main():
     )
     args = parser.parse_args()
 
-    pipeline = TrainingPipeline(args.config)
-    results = pipeline.train()
-    print(f"Training completed. Run ID: {results.get('run_id')}")
+    # Load config from YAML
+    with open(args.config, "r") as f:
+        config = yaml.safe_load(f)
+
+    trainer = Trainer(config)
+    results = trainer.train()
+    print(f"Training completed. Metrics: {results}")
 
 
 if __name__ == "__main__":

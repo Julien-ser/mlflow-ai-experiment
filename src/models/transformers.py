@@ -30,7 +30,7 @@ from typing import Dict, Any, Optional, Union, List
 
 # TensorFlow availability
 try:
-    import tensorflow as tf  # noqa: F401
+    import tensorflow as tf  # type: ignore  # noqa: F401
 
     TF_AVAILABLE = True
 except ImportError:

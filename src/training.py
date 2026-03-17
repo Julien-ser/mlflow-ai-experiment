@@ -34,7 +34,7 @@ except ImportError:
 
 # Optional TensorFlow import
 try:
-    import tensorflow as tf
+    import tensorflow as tf  # type: ignore
 
     TF_AVAILABLE = True
 except ImportError:

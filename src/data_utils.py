@@ -201,13 +201,13 @@ def create_and_log_data_report(
 
         f.write("## Class Distribution\n\n")
         f.write("### Train\n")
-        f.write(train_df["label"].value_counts().to_markdown() + "\n\n")
+        f.write(train_df["label"].value_counts().to_markdown() + "\n\n")  # type: ignore
 
         f.write("### Validation\n")
-        f.write(val_df["label"].value_counts().to_markdown() + "\n\n")
+        f.write(val_df["label"].value_counts().to_markdown() + "\n\n")  # type: ignore
 
         f.write("### Test\n")
-        f.write(test_df["label"].value_counts().to_markdown() + "\n\n")
+        f.write(test_df["label"].value_counts().to_markdown() + "\n\n")  # type: ignore
 
         f.write("## Text Length Statistics\n\n")
         for split_name, df in [
