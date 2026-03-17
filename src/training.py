@@ -6,23 +6,11 @@ checkpointing, early stopping, mixed precision, and comprehensive experiment tra
 
 from __future__ import annotations
 
+import importlib.util
 import time
 import logging
 from pathlib import Path
 from typing import Dict, Any, Optional, Tuple, List
-import numpy as np
-import mlflow
-import joblib  # type: ignore
-
-# Local imports
-from .models.classical import (
-    LogisticRegressionModel,
-    SVMModel,
-    RandomForestModel,
-    XGBoostModel,
-)
-from .models.transformers import TransformerModel
-from .evaluation import compute_metrics
 
 # Optional PyTorch import
 try:
@@ -37,10 +25,22 @@ except ImportError:
     DataLoader: Any = None  # type: ignore
     optim: Any = None  # type: ignore
 
-# Optional TensorFlow import
-import importlib.util
-
+# Check TensorFlow availability
 TF_AVAILABLE = importlib.util.find_spec("tensorflow") is not None
+
+import numpy as np
+import mlflow
+import joblib  # type: ignore
+
+# Local imports
+from .models.classical import (
+    LogisticRegressionModel,
+    SVMModel,
+    RandomForestModel,
+    XGBoostModel,
+)
+from .models.transformers import TransformerModel
+from .evaluation import compute_metrics
 
 logger = logging.getLogger(__name__)
 
