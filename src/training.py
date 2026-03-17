@@ -8,8 +8,8 @@ from __future__ import annotations
 
 import importlib.util
 import logging
-import time
 from pathlib import Path
+import time
 from typing import Any, Dict, List, Optional, Tuple
 
 import joblib  # type: ignore
@@ -19,8 +19,8 @@ import numpy as np
 # Optional PyTorch import
 try:
     import torch
-    from torch.utils.data import DataLoader
     import torch.optim as optim
+    from torch.utils.data import DataLoader
 
     TORCH_AVAILABLE = True
 except ImportError:
