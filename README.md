@@ -140,6 +140,43 @@ All experiments are automatically tracked in MLFlow with:
 - Model artifacts
 - Dataset version information
 
+## Data Utilities & Versioning
+
+### Data Versioning (`src/data_versioning.py`)
+The project implements checksum-based data versioning to ensure reproducibility:
+- **Automatic version detection**: SHA-256 hashes of dataset content
+- **Version manifest**: `data/version_manifest.yaml` stores checksums and timestamps
+- **Integrity verification**: `verify_dataset_integrity()` ensures datasets haven't changed
+- **Version string**: Compact format (e.g., `v1.0-a1b2c3d4`) for tracking
+
+### MLFlow Data Logging (`src/data_utils.py`)
+Comprehensive utilities to log data information to MLFlow:
+- `log_dataset_statistics()`: Sample counts, class distribution, text lengths
+- `log_preprocessing_parameters()`: Track preprocessing configuration
+- `log_data_artifacts()`: Save dataset splits as artifacts (CSV/Parquet)
+- `create_and_log_data_report()`: Generate markdown data reports
+- `prepare_data_for_mlflow()`: All-in-one function for complete data logging
+
+### Usage Example
+```python
+from src.data_loader import load_and_log_dataset
+
+# Load data and automatically log to MLFlow with versioning
+train_df, val_df, test_df = load_and_log_dataset(
+    log_to_mlflow=True,
+    preprocessing_params={
+        "cleaning": "lowercase, remove_html",
+        "tokenization": "bert-base-uncased",
+    }
+)
+```
+
+This automatically:
+- Calculates dataset checksums
+- Creates `data/version_manifest.yaml`
+- Logs statistics, parameters, and artifacts to MLFlow
+- Generates a comprehensive data report
+
 ## Current Status
 **Phase 1: Planning & Setup** - ✓ Complete
 - [x] Problem statement and requirements defined (see [docs/problem-statement.md](docs/problem-statement.md))
@@ -155,20 +192,34 @@ All experiments are automatically tracked in MLFlow with:
   - `src/baseline.py` with TF-IDF + Logistic Regression
   - Project structure complete with `src/`, `data/`, `models/`, `experiments/`, `notebooks/`
 
- **Phase 2: Data Management & Preprocessing** - In Progress
- - [x] Dataset download and preparation
-   - IMDB dataset downloaded using HuggingFace `datasets` library
-   - Train/validation/test splits created (22,501 / 2,501 / 25,001 samples)
-   - Processed files saved in `data/` as CSV
-   - Data exploration notebook: `notebooks/01_data_exploration.ipynb`
-   - Dataset loading utility: `src/data_loader.py`
- - [x] Text preprocessing pipeline
-   - Modular preprocessing functions: `src/preprocessing.py`
-   - Tokenization strategies for classical ML (TF-IDF) and transformers (BERT, RoBERTa, DistilBERT, etc.)
-   - Unified interface: `preprocess_dataset()` supporting both modes
-   - Comprehensive test suite: `tests/test_preprocessing.py` (26 tests passing)
- - [ ] Data utilities for MLFlow logging
- - [ ] Data pipeline performance benchmarking
+  **Phase 2: Data Management & Preprocessing** - In Progress
+  - [x] Dataset download and preparation
+    - IMDB dataset downloaded using HuggingFace `datasets` library
+    - Train/validation/test splits created (22,501 / 2,501 / 25,001 samples)
+    - Processed files saved in `data/` as CSV
+    - Data exploration notebook: `notebooks/01_data_exploration.ipynb`
+    - Dataset loading utility: `src/data_loader.py`
+  - [x] Text preprocessing pipeline
+    - Modular preprocessing functions: `src/preprocessing.py`
+    - Tokenization strategies for classical ML (TF-IDF) and transformers (BERT, RoBERTa, DistilBERT, etc.)
+    - Unified interface: `preprocess_dataset()` supporting both modes
+    - Comprehensive test suite: `tests/test_preprocessing.py` (26 tests passing)
+  - [x] Data utilities for MLFlow logging ✓ **COMPLETED**
+    - **Data versioning**: Checksum-based versioning system (`src/data_versioning.py`)
+      - SHA-256 hashes for dataset splits
+      - Automatic version manifest generation (`data/version_manifest.yaml`)
+      - Dataset integrity verification
+    - **MLFlow logging utilities**: (`src/data_utils.py`)
+      - Dataset statistics logging (sample counts, class distribution, text lengths)
+      - Preprocessing parameters tracking
+      - Dataset artifact storage (CSV/Parquet)
+      - Comprehensive data reports in Markdown format
+      - One-command logging: `prepare_data_for_mlflow()`
+    - **Enhanced data loader**: `src/data_loader.py` now includes:
+      - `load_and_log_dataset()` function for automatic MLFlow logging
+      - Integrated versioning and manifest creation
+    - Updated `scripts/prepare_data.py` to use new logging features
+  - [ ] Data pipeline performance benchmarking
 
 See [TASKS.md](TASKS.md) for full task list.
 

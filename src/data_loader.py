@@ -7,6 +7,8 @@ from datasets import load_dataset
 from sklearn.model_selection import train_test_split
 import yaml
 import os
+from .data_versioning import calculate_dataset_version, save_version_manifest
+from .data_utils import prepare_data_for_mlflow
 
 
 def load_imdb_dataset(config_path="config.yaml"):
@@ -49,6 +51,45 @@ def save_dataset_splits(train_df, val_df, test_df, output_dir="data"):
     test_df.to_csv(f"{output_dir}/test.csv", index=False)
 
     print(f"Dataset splits saved to {output_dir}/")
+
+
+def load_and_log_dataset(
+    config_path="config.yaml",
+    log_to_mlflow: bool = True,
+    preprocessing_params: Optional[Dict] = None,
+) -> tuple:
+    """
+    Load dataset and optionally log to MLFlow with versioning.
+
+    Args:
+        config_path: Path to config file
+        log_to_mlflow: Whether to log dataset info to MLFlow
+        preprocessing_params: Preprocessing parameters to include in versioning
+
+    Returns:
+        Tuple of (train_df, val_df, test_df)
+    """
+    train_df, val_df, test_df = load_imdb_dataset(config_path)
+
+    if log_to_mlflow:
+        prepare_data_for_mlflow(
+            train_df,
+            val_df,
+            test_df,
+            preprocessing_params=preprocessing_params,
+            include_artifacts=True,
+        )
+
+    # Save to disk
+    save_dataset_splits(train_df, val_df, test_df)
+
+    # Calculate and save version manifest
+    versions = calculate_dataset_version(
+        train_df, val_df, test_df, preprocessing_params
+    )
+    save_version_manifest(versions)
+
+    return train_df, val_df, test_df
 
 
 if __name__ == "__main__":
