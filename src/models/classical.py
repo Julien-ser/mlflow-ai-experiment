@@ -4,11 +4,15 @@ Classical ML model implementations for text classification.
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import LinearSVC
+from sklearn.calibration import CalibratedClassifierCV
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV
+import xgboost as xgb
 import numpy as np
+import joblib
 import mlflow
 import mlflow.sklearn
+from typing import Optional, Any
 
 
 class LogisticRegressionModel:
@@ -42,8 +46,12 @@ class LogisticRegressionModel:
         """Get prediction probabilities."""
         return self.model.predict_proba(X)
 
-    def log_to_mlflow(self, experiment_name, run_name="logistic_regression"):
+    def log_to_mlflow(
+        self, experiment_name, run_name="logistic_regression", X_test=None, y_test=None
+    ):
         """Log model and parameters to MLFlow."""
+        mlflow.set_experiment(experiment_name)
+
         with mlflow.start_run(run_name=run_name) as run:
             # Log parameters
             for key, value in self.params.items():
@@ -53,8 +61,33 @@ class LogisticRegressionModel:
             mlflow.sklearn.log_model(
                 self.model,
                 "model",
-                input_example=X_train[:1] if hasattr(self, "X_train") else None,
+                input_example=X_test[:1] if X_test is not None else None,
             )
+
+            # Log evaluation metrics if test data provided
+            if X_test is not None and y_test is not None:
+                from sklearn.metrics import (
+                    accuracy_score,
+                    precision_score,
+                    recall_score,
+                    f1_score,
+                )
+
+                y_pred = self.predict(X_test)
+                y_pred_proba = (
+                    self.predict_proba(X_test)[:, 1]
+                    if self.model.classes_.shape[0] == 2
+                    else None
+                )
+
+                mlflow.log_metric("accuracy", accuracy_score(y_test, y_pred))
+                mlflow.log_metric(
+                    "precision", precision_score(y_test, y_pred, zero_division=0)
+                )
+                mlflow.log_metric(
+                    "recall", recall_score(y_test, y_pred, zero_division=0)
+                )
+                mlflow.log_metric("f1", f1_score(y_test, y_pred, zero_division=0))
 
             # Log tags
             mlflow.set_tag("model_type", "logistic_regression")
@@ -62,21 +95,42 @@ class LogisticRegressionModel:
 
             return run.info.run_id
 
+    def save_model(self, path):
+        """Save model to disk."""
+        joblib.dump(self.model, path)
+
+    @classmethod
+    def load_model(cls, path, params=None):
+        """Load model from disk."""
+        instance = cls(params)
+        instance.model = joblib.load(path)
+        return instance
+
 
 class SVMModel:
-    """Support Vector Machine with TF-IDF features."""
+    """Support Vector Machine with TF-IDF features and probability calibration."""
 
     def __init__(self, params=None):
         self.params = params or {"C": 1.0, "max_iter": 1000, "random_state": 42}
-        self.model = None
+        self.base_model = None
+        self.model = None  # This will hold the calibrated model
 
     def train(self, X_train, y_train, X_val, y_val):
-        """Train SVM model."""
-        self.model = LinearSVC(**self.params)
-        self.model.fit(X_train, y_train)
+        """Train SVM model with probability calibration."""
+        # First train a LinearSVC (fast for high-dimensional sparse data)
+        self.base_model = LinearSVC(**self.params)
+        self.base_model.fit(X_train, y_train)
 
-        train_score = self.model.score(X_train, y_train)
-        val_score = self.model.score(X_val, y_val)
+        # Then calibrate to get probability estimates using validation set
+        self.model = CalibratedClassifierCV(
+            self.base_model,
+            method="sigmoid",
+            cv="prefit",  # Use the pre-trained base model
+        )
+        self.model.fit(X_val, y_val)
+
+        train_score = self.base_model.score(X_train, y_train)
+        val_score = self.base_model.score(X_val, y_val)
 
         return {"train_accuracy": train_score, "val_accuracy": val_score}
 
@@ -84,17 +138,60 @@ class SVMModel:
         """Make predictions."""
         return self.model.predict(X)
 
-    def log_to_mlflow(self, experiment_name, run_name="svm"):
+    def predict_proba(self, X):
+        """Get prediction probabilities."""
+        return self.model.predict_proba(X)
+
+    def log_to_mlflow(self, experiment_name, run_name="svm", X_test=None, y_test=None):
         """Log model to MLFlow."""
+        mlflow.set_experiment(experiment_name)
+
         with mlflow.start_run(run_name=run_name) as run:
             for key, value in self.params.items():
                 mlflow.log_param(key, value)
 
-            mlflow.sklearn.log_model(self.model, "model")
+            # Log model
+            mlflow.sklearn.log_model(
+                self.model,
+                "model",
+                input_example=X_test[:1] if X_test is not None else None,
+            )
+
+            # Log evaluation metrics if test data provided
+            if X_test is not None and y_test is not None:
+                from sklearn.metrics import (
+                    accuracy_score,
+                    precision_score,
+                    recall_score,
+                    f1_score,
+                )
+
+                y_pred = self.predict(X_test)
+
+                mlflow.log_metric("accuracy", accuracy_score(y_test, y_pred))
+                mlflow.log_metric(
+                    "precision", precision_score(y_test, y_pred, zero_division=0)
+                )
+                mlflow.log_metric(
+                    "recall", recall_score(y_test, y_pred, zero_division=0)
+                )
+                mlflow.log_metric("f1", f1_score(y_test, y_pred, zero_division=0))
+
             mlflow.set_tag("model_type", "svm")
             mlflow.set_tag("framework", "sklearn")
 
             return run.info.run_id
+
+    def save_model(self, path):
+        """Save model to disk."""
+        joblib.dump(self.model, path)
+
+    @classmethod
+    def load_model(cls, path, params=None):
+        """Load model from disk."""
+        instance = cls(params)
+        instance.model = joblib.load(path)
+        return instance
 
 
 class RandomForestModel:
@@ -127,17 +224,161 @@ class RandomForestModel:
         """Get prediction probabilities."""
         return self.model.predict_proba(X)
 
-    def log_to_mlflow(self, experiment_name, run_name="random_forest"):
+    def log_to_mlflow(
+        self, experiment_name, run_name="random_forest", X_test=None, y_test=None
+    ):
         """Log model to MLFlow."""
+        mlflow.set_experiment(experiment_name)
+
         with mlflow.start_run(run_name=run_name) as run:
             for key, value in self.params.items():
                 mlflow.log_param(key, value)
 
-            mlflow.sklearn.log_model(self.model, "model")
+            # Log model
+            mlflow.sklearn.log_model(
+                self.model,
+                "model",
+                input_example=X_test[:1] if X_test is not None else None,
+            )
+
+            # Log evaluation metrics if test data provided
+            if X_test is not None and y_test is not None:
+                from sklearn.metrics import (
+                    accuracy_score,
+                    precision_score,
+                    recall_score,
+                    f1_score,
+                )
+
+                y_pred = self.predict(X_test)
+                y_pred_proba = (
+                    self.predict_proba(X_test)[:, 1]
+                    if self.model.classes_.shape[0] == 2
+                    else None
+                )
+
+                mlflow.log_metric("accuracy", accuracy_score(y_test, y_pred))
+                mlflow.log_metric(
+                    "precision", precision_score(y_test, y_pred, zero_division=0)
+                )
+                mlflow.log_metric(
+                    "recall", recall_score(y_test, y_pred, zero_division=0)
+                )
+                mlflow.log_metric("f1", f1_score(y_test, y_pred, zero_division=0))
+
             mlflow.set_tag("model_type", "random_forest")
             mlflow.set_tag("framework", "sklearn")
 
             return run.info.run_id
+
+    def save_model(self, path):
+        """Save model to disk."""
+        joblib.dump(self.model, path)
+
+    @classmethod
+    def load_model(cls, path, params=None):
+        """Load model from disk."""
+        instance = cls(params)
+        instance.model = joblib.load(path)
+        return instance
+
+
+class XGBoostModel:
+    """XGBoost classifier with GPU support."""
+
+    def __init__(self, params=None):
+        self.params = params or {
+            "n_estimators": 100,
+            "max_depth": 6,
+            "learning_rate": 0.1,
+            "subsample": 0.8,
+            "colsample_bytree": 0.8,
+            "random_state": 42,
+            "n_jobs": -1,
+            "eval_metric": "logloss",
+            "tree_method": "hist",  # Use 'gpu_hist' if GPU available
+        }
+        self.model = None
+
+    def train(self, X_train, y_train, X_val, y_val):
+        """Train XGBoost model."""
+        self.model = xgb.XGBClassifier(**self.params)
+
+        # Prepare validation set for early stopping
+        eval_set = [(X_train, y_train), (X_val, y_val)]
+
+        self.model.fit(X_train, y_train, eval_set=eval_set, verbose=False)
+
+        train_score = self.model.score(X_train, y_train)
+        val_score = self.model.score(X_val, y_val)
+
+        return {"train_accuracy": train_score, "val_accuracy": val_score}
+
+    def predict(self, X):
+        """Make predictions."""
+        return self.model.predict(X)
+
+    def predict_proba(self, X):
+        """Get prediction probabilities."""
+        return self.model.predict_proba(X)
+
+    def log_to_mlflow(
+        self, experiment_name, run_name="xgboost", X_test=None, y_test=None
+    ):
+        """Log model to MLFlow."""
+        mlflow.set_experiment(experiment_name)
+
+        with mlflow.start_run(run_name=run_name) as run:
+            for key, value in self.params.items():
+                mlflow.log_param(key, value)
+
+            # Log model
+            mlflow.sklearn.log_model(
+                self.model,
+                "model",
+                input_example=X_test[:1] if X_test is not None else None,
+            )
+
+            # Log evaluation metrics if test data provided
+            if X_test is not None and y_test is not None:
+                from sklearn.metrics import (
+                    accuracy_score,
+                    precision_score,
+                    recall_score,
+                    f1_score,
+                )
+
+                y_pred = self.predict(X_test)
+                y_pred_proba = (
+                    self.predict_proba(X_test)[:, 1]
+                    if self.model.classes_.shape[0] == 2
+                    else None
+                )
+
+                mlflow.log_metric("accuracy", accuracy_score(y_test, y_pred))
+                mlflow.log_metric(
+                    "precision", precision_score(y_test, y_pred, zero_division=0)
+                )
+                mlflow.log_metric(
+                    "recall", recall_score(y_test, y_pred, zero_division=0)
+                )
+                mlflow.log_metric("f1", f1_score(y_test, y_pred, zero_division=0))
+
+            mlflow.set_tag("model_type", "xgboost")
+            mlflow.set_tag("framework", "xgboost")
+
+            return run.info.run_id
+
+    def save_model(self, path):
+        """Save model to disk."""
+        joblib.dump(self.model, path)
+
+    @classmethod
+    def load_model(cls, path, params=None):
+        """Load model from disk."""
+        instance = cls(params)
+        instance.model = joblib.load(path)
+        return instance
 
 
 def create_model(model_name, params=None):
@@ -146,6 +387,7 @@ def create_model(model_name, params=None):
         "logistic_regression": LogisticRegressionModel,
         "svm": SVMModel,
         "random_forest": RandomForestModel,
+        "xgboost": XGBoostModel,
     }
 
     if model_name not in models:

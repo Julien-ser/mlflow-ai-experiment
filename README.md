@@ -103,7 +103,15 @@ python src/train.py --model logistic_regression --config config.yaml
 # Train other classical models
 python src/train.py --model svm --config config.yaml
 python src/train.py --model random_forest --config config.yaml
+python src/train.py --model xgboost --config config.yaml
 ```
+
+Or train all classical models at once with the comprehensive script:
+```bash
+python scripts/run_classical_models.py
+```
+
+This script trains all classical models (Logistic Regression, SVM, Random Forest, XGBoost) and generates a comparison table with all metrics logged to MLflow.
 
 #### Transformer Models
 The project now includes a unified transformer interface supporting multiple architectures:
@@ -277,7 +285,14 @@ This automatically:
   - MLflow logging with transformers flavor
   - Comprehensive test suite: `tests/test_transformers.py`
   - Factory functions for easy model creation
-- [ ] Build classical ML model implementations
+- [x] **Build classical ML model implementations** - ✓ COMPLETED
+  - Logistic Regression with TF-IDF features
+  - Support Vector Machines (LinearSVC)
+  - Random Forest classifier
+  - XGBoost with GPU support
+  - Unified interface with save/load methods
+  - Comprehensive evaluation and MLflow logging
+  - Batch training script: `scripts/run_classical_models.py`
 - [ ] Implement state-of-the-art models beyond transformers (ELECTRA, ALBERT, DistilBERT, GPT-based)
 - [ ] Create unified training pipeline
 
