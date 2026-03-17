@@ -141,7 +141,7 @@ All experiments are automatically tracked in MLFlow with:
 - Dataset version information
 
 ## Current Status
-**Phase 1: Planning & Setup** - In Progress
+**Phase 1: Planning & Setup** - ✓ Complete
 - [x] Problem statement and requirements defined (see [docs/problem-statement.md](docs/problem-statement.md))
 - [x] MLFlow tracking infrastructure setup
   - `config.yaml` with experiment parameters
@@ -153,8 +153,18 @@ All experiments are automatically tracked in MLFlow with:
   - `verify_environment.py` script for validation
 - [x] Baseline model implementation
   - `src/baseline.py` with TF-IDF + Logistic Regression
-  - `scripts/run_baseline.py` for training with MLFlow logging
   - Project structure complete with `src/`, `data/`, `models/`, `experiments/`, `notebooks/`
+
+**Phase 2: Data Management & Preprocessing** - In Progress
+- [x] Dataset download and preparation
+  - IMDB dataset downloaded using HuggingFace `datasets` library
+  - Train/validation/test splits created (22,501 / 2,501 / 25,001 samples)
+  - Processed files saved in `data/` as CSV
+  - Data exploration notebook: `notebooks/01_data_exploration.ipynb`
+  - Dataset loading utility: `src/data_loader.py`
+- [ ] Text preprocessing pipeline
+- [ ] Data utilities for MLFlow logging
+- [ ] Data pipeline performance benchmarking
 
 See [TASKS.md](TASKS.md) for full task list.
 
