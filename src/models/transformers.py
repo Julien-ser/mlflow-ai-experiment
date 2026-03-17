@@ -58,6 +58,8 @@ class TransformerModel:
         num_train_epochs: int = 3,
         weight_decay: float = 0.01,
         warmup_steps: int = 500,
+        backend: str = "pytorch",
+        early_stopping_patience: int = 3,
         **kwargs,
     ):
         """
@@ -84,19 +86,33 @@ class TransformerModel:
         self.num_train_epochs = num_train_epochs
         self.weight_decay = weight_decay
         self.warmup_steps = warmup_steps
+        self.backend = backend
+        self.early_stopping_patience = early_stopping_patience
+        if self.backend not in ["pytorch", "tensorflow"]:
+            raise ValueError(
+                f"Unsupported backend: {self.backend}. Choose 'pytorch' or 'tensorflow'."
+            )
         self.model = None
         self.tokenizer = None
         self.trainer = None
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     def _get_model_class(self, model_type: str):
-        """Get the appropriate HuggingFace model class based on model type."""
-        if model_type not in self.MODEL_CLASSES:
-            raise ValueError(
-                f"Unknown model type: {model_type}. "
-                f"Supported: {list(self.MODEL_CLASSES.keys())}"
-            )
-        return self.MODEL_CLASSES[model_type]
+        """Get the appropriate HuggingFace model class based on model type and backend."""
+        if self.backend == "pytorch":
+            if model_type not in self.MODEL_CLASSES:
+                raise ValueError(
+                    f"Unknown model type: {model_type}. "
+                    f"Supported: {list(self.MODEL_CLASSES.keys())}"
+                )
+            return self.MODEL_CLASSES[model_type]
+        elif self.backend == "tensorflow":
+            # Lazy import to avoid top-level dependency
+            from transformers import TFAutoModelForSequenceClassification
+
+            return TFAutoModelForSequenceClassification
+        else:
+            raise ValueError(f"Unsupported backend: {self.backend}")
 
     def _extract_model_type(self, model_name: str) -> str:
         """Extract model type from model name (e.g., 'bert-base-uncased' -> 'bert')."""
@@ -139,8 +155,11 @@ class TransformerModel:
             problem_type="single_label_classification",
         )
 
-        # Apply custom dropout if specified
-        if self.dropout != self.model.config.hidden_dropout_prob:
+        # Apply custom dropout for PyTorch models only
+        if (
+            self.backend == "pytorch"
+            and self.dropout != self.model.config.hidden_dropout_prob
+        ):
             self.model.classifier.dropout.p = self.dropout
 
         self.model.to(self.device)
@@ -162,27 +181,40 @@ class TransformerModel:
         if self.tokenizer is None:
             self.load_tokenizer()
 
+        # Determine return tensor format based on backend
+        if self.backend == "tensorflow":
+            return_tensors = "tf"
+        else:
+            return_tensors = "pt"
         encoding = self.tokenizer(
             texts,
             padding=padding,
             truncation=truncation,
             max_length=self.max_seq_length,
-            return_tensors="pt" if self.device.type == "cpu" else None,
+            return_tensors=return_tensors,
         )
 
         if labels is not None:
-            encoding["labels"] = torch.tensor(labels)
+            if self.backend == "tensorflow":
+                import tensorflow as tf
+
+                encoding["labels"] = tf.constant(labels)
+            else:
+                encoding["labels"] = torch.tensor(labels)
 
         return encoding
 
-    def train(self, train_dataset, eval_dataset=None, experiment_name=None):
+    def train(
+        self, train_dataset, eval_dataset=None, experiment_name=None, training_args=None
+    ):
         """
-        Train the transformer model.
+        Train the transformer model with flexible configuration.
 
         Args:
-            train_dataset: Tokenized training dataset (dict with input_ids, attention_mask, labels)
+            train_dataset: Tokenized training dataset
             eval_dataset: Optional tokenized validation dataset
             experiment_name: Optional MLflow experiment name
+            training_args: Optional dict of TrainingArguments overrides
 
         Returns:
             Training results
@@ -190,32 +222,64 @@ class TransformerModel:
         if self.model is None:
             self.build_model()
 
-        # Prepare training arguments
+        if training_args is None:
+            training_args = {}
+
         output_dir = f"./output/{self.model_name.replace('/', '_')}"
 
-        training_args = TrainingArguments(
-            output_dir=output_dir,
-            num_train_epochs=self.num_train_epochs,
-            per_device_train_batch_size=self.batch_size,
-            per_device_eval_batch_size=self.batch_size * 2,
-            warmup_steps=self.warmup_steps,
-            weight_decay=self.weight_decay,
-            logging_dir=f"{output_dir}/logs",
-            logging_steps=100,
-            evaluation_strategy="steps" if eval_dataset else "no",
-            eval_steps=500 if eval_dataset else None,
-            save_strategy="steps",
-            save_steps=500 if eval_dataset else "epoch",
-            load_best_model_at_end=True if eval_dataset else False,
-            metric_for_best_model="eval_accuracy" if eval_dataset else None,
-            greater_is_better=True if eval_dataset else None,
-            report_to="none",  # Disable wandb/tensorboard by default
-            push_to_hub=False,
+        # Base arguments
+        args = {
+            "output_dir": output_dir,
+            "num_train_epochs": self.num_train_epochs,
+            "per_device_train_batch_size": self.batch_size,
+            "per_device_eval_batch_size": self.batch_size * 2,
+            "warmup_steps": self.warmup_steps,
+            "weight_decay": self.weight_decay,
+            "logging_dir": f"{output_dir}/logs",
+            "logging_steps": 100,
+            "evaluation_strategy": "steps" if eval_dataset else "no",
+            "eval_steps": 500 if eval_dataset else None,
+            "save_strategy": "steps",
+            "save_steps": 500 if eval_dataset else "epoch",
+            "load_best_model_at_end": True if eval_dataset else False,
+            "metric_for_best_model": "eval_accuracy" if eval_dataset else None,
+            "greater_is_better": True if eval_dataset else None,
+            "report_to": "none",
+            "push_to_hub": False,
+        }
+        args.update(training_args)
+
+        # Select backend-specific trainer classes
+        if self.backend == "pytorch":
+            TrainerClass = Trainer
+            ArgsClass = TrainingArguments
+        elif self.backend == "tensorflow":
+            if not TF_AVAILABLE:
+                raise ImportError(
+                    "TensorFlow is not installed. Please install tensorflow to use the tensorflow backend."
+                )
+            # Enable mixed precision if requested
+            if args.get("fp16"):
+                import tensorflow as tf
+
+                tf.keras.mixed_precision.set_global_policy("mixed_float16")
+            from transformers import TFTrainer, TFTrainingArguments
+
+            TrainerClass = TFTrainer
+            ArgsClass = TFTrainingArguments
+        else:
+            raise ValueError(f"Unsupported backend: {self.backend}")
+
+        # Extract early_stopping_patience if provided, default to model's setting
+        early_stopping_patience = args.pop(
+            "early_stopping_patience", self.early_stopping_patience
         )
 
-        # Define compute_metrics function if eval_dataset provided
+        # Create training arguments object
+        training_args_obj = ArgsClass(**args)
+
+        # Define compute_metrics function
         def compute_metrics(eval_pred):
-            """Compute metrics for evaluation."""
             predictions, labels = eval_pred
             predictions = torch.tensor(predictions)
             labels = torch.tensor(labels)
@@ -224,10 +288,8 @@ class TransformerModel:
                 predictions = torch.argmax(predictions, dim=-1)
 
             accuracy = (predictions == labels).float().mean()
-
             metrics = {"accuracy": accuracy.item()}
 
-            # Add F1 score for binary classification
             if self.num_labels == 2:
                 from sklearn.metrics import f1_score
 
@@ -236,19 +298,24 @@ class TransformerModel:
 
             return metrics
 
+        # Prepare callbacks
+        callbacks = []
+        if eval_dataset:
+            callbacks.append(
+                EarlyStoppingCallback(early_stopping_patience=early_stopping_patience)
+            )
+
         # Create trainer
-        self.trainer = Trainer(
+        self.trainer = TrainerClass(
             model=self.model,
-            args=training_args,
+            args=training_args_obj,
             train_dataset=train_dataset,
             eval_dataset=eval_dataset,
             compute_metrics=compute_metrics if eval_dataset else None,
-            callbacks=[EarlyStoppingCallback(early_stopping_patience=3)]
-            if eval_dataset
-            else [],
+            callbacks=callbacks,
         )
 
-        # Train the model
+        # Train
         train_result = self.trainer.train()
 
         # Log to MLflow if experiment name provided
