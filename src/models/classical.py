@@ -41,12 +41,12 @@ class LogisticRegressionModel:
     def predict(self, X) -> np.ndarray:
         """Make predictions."""
         assert self.model is not None
-        return self.model.predict(X)
+        return self.model.predict(X)  # type: ignore[return-type]
 
     def predict_proba(self, X) -> np.ndarray:
         """Get prediction probabilities."""
         assert self.model is not None
-        return self.model.predict_proba(X)
+        return self.model.predict_proba(X)  # type: ignore[return-type]
 
     def log_to_mlflow(
         self, experiment_name, run_name="logistic_regression", X_test=None, y_test=None
@@ -140,7 +140,7 @@ class SVMModel:
     def predict_proba(self, X) -> np.ndarray:
         """Get prediction probabilities."""
         assert self.model is not None
-        return self.model.predict_proba(X)
+        return self.model.predict_proba(X)  # type: ignore[return-type]
 
     def log_to_mlflow(self, experiment_name, run_name="svm", X_test=None, y_test=None):
         """Log model to MLFlow."""
@@ -319,12 +319,12 @@ class XGBoostModel:
     def predict(self, X) -> np.ndarray:
         """Make predictions."""
         assert self.model is not None
-        return self.model.predict(X)
+        return self.model.predict(X)  # type: ignore[return-type]
 
     def predict_proba(self, X) -> np.ndarray:
         """Get prediction probabilities."""
         assert self.model is not None
-        return self.model.predict_proba(X)
+        return self.model.predict_proba(X)  # type: ignore[return-type]
 
     def log_to_mlflow(
         self, experiment_name, run_name="xgboost", X_test=None, y_test=None
