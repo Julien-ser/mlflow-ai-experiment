@@ -18,7 +18,7 @@
    - Deliverable: `src/preprocessing.py` with configurable pipelines, `src/tokenizers.py` for BERT/RoBERTa/DistilBERT tokenizers, and tests in `tests/test_preprocessing.py`
 - [x] Create data utilities for MLFlow logging: Implement data versioning approach and utilities to log dataset statistics, splits, and preprocessing parameters to MLFlow
   - Deliverable: `src/data_utils.py` with functions to log data artifacts and metrics, `src/data_versioning.py` with checksum-based versioning, and updated data loading scripts
-- [ ] Benchmark data pipeline performance: Measure and log data loading times, preprocessing throughput, and memory usage for different batch sizes
+- [x] Benchmark data pipeline performance: Measure and log data loading times, preprocessing throughput, and memory usage for different batch sizes
   - Deliverable: Performance benchmark script `scripts/benchmark_data.py`, performance results logged to MLFlow, and optimization recommendations in `docs/data_performance.md`
 
 ## Phase 3: Model Implementation & Training

@@ -1,0 +1,7 @@
+artifact_location: /home/julien/Desktop/Free-Wiggum-opencode/projects/mlflow-ai-experiment/mlruns/514441823031162418
+creation_time: 1773774125327
+experiment_id: '514441823031162418'
+last_update_time: 1773774125327
+lifecycle_stage: active
+name: data_pipeline_benchmarks
+workspace: default

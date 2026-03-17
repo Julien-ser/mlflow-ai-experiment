@@ -1,0 +1,14 @@
+artifact_uri: /home/julien/Desktop/Free-Wiggum-opencode/projects/mlflow-ai-experiment/mlruns/135275907643253879/03ed22f870a843078e3a54bc47290641/artifacts
+end_time: null
+entry_point_name: ''
+experiment_id: '135275907643253879'
+lifecycle_stage: active
+run_id: 03ed22f870a843078e3a54bc47290641
+run_name: benchmark_run
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1773774125642
+status: 1
+tags: []
+user_id: julien

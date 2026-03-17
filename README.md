@@ -115,6 +115,45 @@ python src/train.py --model bert --config config.yaml
 python src/evaluate.py --model-path models/best_model/
 ```
 
+## Data Pipeline Performance Benchmark
+
+The project includes a comprehensive benchmark to measure data loading and preprocessing performance across different batch sizes and configurations.
+
+### Running the Benchmark
+
+```bash
+# Install psutil if not already installed
+pip install psutil
+
+# Run the benchmark (logs results to MLFlow)
+python scripts/benchmark_data.py
+```
+
+The benchmark measures:
+- **Data loading**: Time and memory for loading IMDB dataset with different batch sizes
+- **Classical preprocessing**: TF-IDF vectorization with various feature counts
+- **Transformer tokenization**: BERT, RoBERTa, DistilBERT tokenization throughput
+
+All results are automatically logged to MLFlow in the `data_pipeline_benchmarks` experiment.
+
+### Viewing Results
+
+```bash
+# Start MLFlow UI
+mlflow ui
+# Open http://localhost:5000
+```
+
+Detailed analysis and recommendations are available in:
+- [docs/data_performance.md](docs/data_performance.md)
+
+### Benchmark Outputs
+
+The script generates CSV files with detailed metrics and uploads them as MLFlow artifacts:
+- `data_loading_benchmark.csv`
+- `classical_preprocessing_benchmark.csv`
+- `transformer_preprocessing_benchmark.csv`
+
 ## Model Categories
 
 ### Classical ML Models
@@ -219,7 +258,12 @@ This automatically:
       - `load_and_log_dataset()` function for automatic MLFlow logging
       - Integrated versioning and manifest creation
     - Updated `scripts/prepare_data.py` to use new logging features
-  - [ ] Data pipeline performance benchmarking
+   - [x] Data pipeline performance benchmarking ✓ **COMPLETED**
+     - Created benchmark script: `scripts/benchmark_data.py`
+     - Benchmarks cover data loading, classical preprocessing (TF-IDF), and transformer tokenization
+     - Performance metrics logged to MLFlow experiment `data_pipeline_benchmarks`
+     - Documentation: [docs/data_performance.md](docs/data_performance.md)
+     - Results provide optimization recommendations for batch sizes and model selection
 
 See [TASKS.md](TASKS.md) for full task list.
 
