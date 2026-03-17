@@ -106,9 +106,33 @@ python src/train.py --model random_forest --config config.yaml
 ```
 
 #### Transformer Models
+The project now includes a unified transformer interface supporting multiple architectures:
+
 ```bash
-python src/train.py --model bert --config config.yaml
+# BERT base or large
+python src/train.py --model bert --config config/transformer_bert.yaml
+python src/train.py --model bert-large --config config/transformer_bert.yaml
+
+# RoBERTa
+python src/train.py --model roberta --config config/transformer_roberta.yaml
+
+# DeBERTa (v3)
+python src/train.py --model deberta --config config/transformer_deberta.yaml
+
+# XLNet
+python src/train.py --model xlnet --config config/transformer_xlnet.yaml
+
+# Or use custom HuggingFace model names
+python src/train.py --model distilbert-base-uncased --config config/transformer_distilbert.yaml
+python src/train.py --model google/electra-base-discriminator --config config/transformer_electra.yaml
 ```
+
+The transformer models are implemented in `src/models/transformers.py` with:
+- Unified `TransformerModel` base class with consistent API
+- Specific wrappers: `BERTModel`, `RoBERTaModel`, `DeBERTaModel`, `XLNetModel`
+- Factory functions: `create_transformer_model()` and `create_transformer_model_from_name()`
+- Support for custom classification heads with configurable dropout
+- Automatic MLflow logging with transformers flavor
 
 ### Evaluating Models
 ```bash
@@ -161,15 +185,29 @@ The script generates CSV files with detailed metrics and uploads them as MLFlow 
 - Support Vector Machines (SVM)
 - Random Forest
 - XGBoost
+- LightGBM
 
 ### Transformer Models
-- BERT (base and large)
-- RoBERTa
+The project includes a **unified transformer interface** with support for:
+
+**Core architectures** (directly implemented):
+- BERT (base, large, and any HuggingFace variant)
+- RoBERTa (base, large)
+- DeBERTa (v3 base/large)
+- XLNet (base, large)
+
+**Extended support** (any HuggingFace model):
 - DistilBERT
-- DeBERTa
-- XLNet
 - ELECTRA
 - ALBERT
+- GPT-2/3 for classification
+- And any other text-classification model from HuggingFace Hub
+
+All transformer models share the same API via `TransformerModel` base class with:
+- Consistent training, prediction, and logging interfaces
+- Customizable classification heads
+- Automatic device management (CPU/GPU)
+- MLflow transformers flavor integration
 
 ## Tracking Experiments
 All experiments are automatically tracked in MLFlow with:
@@ -217,53 +255,31 @@ This automatically:
 - Generates a comprehensive data report
 
 ## Current Status
+
 **Phase 1: Planning & Setup** - ✓ Complete
 - [x] Problem statement and requirements defined (see [docs/problem-statement.md](docs/problem-statement.md))
 - [x] MLFlow tracking infrastructure setup
-  - `config.yaml` with experiment parameters
-  - `setup_mlflow.py` script to initialize tracking
-  - Project directory structure created
 - [x] Development environment creation
-  - `requirements.txt` with all core dependencies
-  - `environment.yml` for Conda users
-  - `verify_environment.py` script for validation
 - [x] Baseline model implementation
-  - `src/baseline.py` with TF-IDF + Logistic Regression
-  - Project structure complete with `src/`, `data/`, `models/`, `experiments/`, `notebooks/`
 
-  **Phase 2: Data Management & Preprocessing** - In Progress
-  - [x] Dataset download and preparation
-    - IMDB dataset downloaded using HuggingFace `datasets` library
-    - Train/validation/test splits created (22,501 / 2,501 / 25,001 samples)
-    - Processed files saved in `data/` as CSV
-    - Data exploration notebook: `notebooks/01_data_exploration.ipynb`
-    - Dataset loading utility: `src/data_loader.py`
-  - [x] Text preprocessing pipeline
-    - Modular preprocessing functions: `src/preprocessing.py`
-    - Tokenization strategies for classical ML (TF-IDF) and transformers (BERT, RoBERTa, DistilBERT, etc.)
-    - Unified interface: `preprocess_dataset()` supporting both modes
-    - Comprehensive test suite: `tests/test_preprocessing.py` (26 tests passing)
-  - [x] Data utilities for MLFlow logging ✓ **COMPLETED**
-    - **Data versioning**: Checksum-based versioning system (`src/data_versioning.py`)
-      - SHA-256 hashes for dataset splits
-      - Automatic version manifest generation (`data/version_manifest.yaml`)
-      - Dataset integrity verification
-    - **MLFlow logging utilities**: (`src/data_utils.py`)
-      - Dataset statistics logging (sample counts, class distribution, text lengths)
-      - Preprocessing parameters tracking
-      - Dataset artifact storage (CSV/Parquet)
-      - Comprehensive data reports in Markdown format
-      - One-command logging: `prepare_data_for_mlflow()`
-    - **Enhanced data loader**: `src/data_loader.py` now includes:
-      - `load_and_log_dataset()` function for automatic MLFlow logging
-      - Integrated versioning and manifest creation
-    - Updated `scripts/prepare_data.py` to use new logging features
-   - [x] Data pipeline performance benchmarking ✓ **COMPLETED**
-     - Created benchmark script: `scripts/benchmark_data.py`
-     - Benchmarks cover data loading, classical preprocessing (TF-IDF), and transformer tokenization
-     - Performance metrics logged to MLFlow experiment `data_pipeline_benchmarks`
-     - Documentation: [docs/data_performance.md](docs/data_performance.md)
-     - Results provide optimization recommendations for batch sizes and model selection
+**Phase 2: Data Management & Preprocessing** - ✓ Complete
+- [x] Dataset download and preparation
+- [x] Text preprocessing pipeline
+- [x] Data utilities for MLFlow logging
+- [x] Data pipeline performance benchmarking
+
+**Phase 3: Model Implementation & Training** - In Progress
+- [x] **HuggingFace transformer integration** - ✓ COMPLETED
+  - Unified `TransformerModel` base class in `src/models/transformers.py`
+  - Support for BERT, RoBERTa, DeBERTa, XLNet architectures
+  - Custom classification heads with configurable dropout
+  - Training pipeline with HuggingFace Trainer
+  - MLflow logging with transformers flavor
+  - Comprehensive test suite: `tests/test_transformers.py`
+  - Factory functions for easy model creation
+- [ ] Build classical ML model implementations
+- [ ] Implement state-of-the-art models beyond transformers (ELECTRA, ALBERT, DistilBERT, GPT-based)
+- [ ] Create unified training pipeline
 
 See [TASKS.md](TASKS.md) for full task list.
 
