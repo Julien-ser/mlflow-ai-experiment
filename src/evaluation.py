@@ -3,9 +3,9 @@ Evaluation metrics for classification models.
 """
 
 import time
-import psutil
+import psutil  # type: ignore
 import numpy as np
-from sklearn.metrics import (
+from sklearn.metrics import (  # type: ignore
     accuracy_score,
     precision_score,
     recall_score,

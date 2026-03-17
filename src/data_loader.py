@@ -2,13 +2,14 @@
 Data loader for IMDB dataset using HuggingFace datasets library.
 """
 
-import pandas as pd
-from datasets import load_dataset
-from sklearn.model_selection import train_test_split
-import yaml
+import pandas as pd  # type: ignore
+from datasets import load_dataset  # type: ignore
+from sklearn.model_selection import train_test_split  # type: ignore
+import yaml  # type: ignore
 import os
 from .data_versioning import calculate_dataset_version, save_version_manifest
 from .data_utils import prepare_data_for_mlflow
+from typing import Optional, Dict
 
 
 def load_imdb_dataset(config_path="config.yaml"):

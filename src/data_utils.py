@@ -5,8 +5,8 @@ Provides functions to log dataset statistics, splits, and preprocessing paramete
 
 import os
 import mlflow
-import pandas as pd
-from typing import Dict, Any, Optional
+import pandas as pd  # type: ignore
+from typing import Dict, Any, Optional, List, Tuple
 from .data_versioning import (
     calculate_dataset_version,
     get_dataset_version_string,
@@ -96,7 +96,7 @@ def _flatten_dict(
     Returns:
         Flattened dictionary
     """
-    items = []
+    items: List[Tuple[str, Any]] = []
     for k, v in d.items():
         new_key = f"{parent_key}{sep}{k}" if parent_key else k
         if isinstance(v, dict):

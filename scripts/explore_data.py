@@ -3,10 +3,10 @@ Data exploration script for IMDB dataset.
 Run this script to generate exploration statistics and visualizations.
 """
 
-import pandas as pd
+import pandas as pd  # type: ignore
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
+import seaborn as sns  # type: ignore
 from collections import Counter
 import re
 import json

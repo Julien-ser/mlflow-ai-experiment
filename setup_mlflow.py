@@ -5,7 +5,7 @@ Initializes MLflow tracking infrastructure for the experiment tracking project.
 """
 
 import os
-import yaml
+import yaml  # type: ignore
 import mlflow
 from pathlib import Path
 

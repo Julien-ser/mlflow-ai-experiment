@@ -4,14 +4,14 @@ This serves as a simple, interpretable baseline for text classification.
 """
 
 import os
-import joblib
+import joblib  # type: ignore
 from typing import Tuple, Dict, Any
 
 import numpy as np
-import pandas as pd
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import (
+import pandas as pd  # type: ignore
+from sklearn.feature_extraction.text import TfidfVectorizer  # type: ignore
+from sklearn.linear_model import LogisticRegression  # type: ignore
+from sklearn.metrics import (  # type: ignore
     accuracy_score,
     precision_score,
     recall_score,

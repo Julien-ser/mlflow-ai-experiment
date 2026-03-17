@@ -8,8 +8,8 @@ import json
 import os
 from pathlib import Path
 from typing import Dict, List, Optional, Union
-import pandas as pd
-import yaml
+import pandas as pd  # type: ignore
+import yaml  # type: ignore
 
 
 def calculate_file_checksum(file_path: str, algorithm: str = "sha256") -> str:

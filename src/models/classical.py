@@ -2,14 +2,14 @@
 Classical ML model implementations for text classification.
 """
 
-from sklearn.linear_model import LogisticRegression
-from sklearn.svm import LinearSVC
-from sklearn.calibration import CalibratedClassifierCV
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.model_selection import GridSearchCV
+from sklearn.linear_model import LogisticRegression  # type: ignore
+from sklearn.svm import LinearSVC  # type: ignore
+from sklearn.calibration import CalibratedClassifierCV  # type: ignore
+from sklearn.ensemble import RandomForestClassifier  # type: ignore
+from sklearn.model_selection import GridSearchCV  # type: ignore
 import xgboost as xgb
 import numpy as np
-import joblib
+import joblib  # type: ignore
 import mlflow
 import mlflow.sklearn as mlflow_sklearn  # type: ignore
 from typing import Optional, Any
@@ -68,7 +68,7 @@ class LogisticRegressionModel:
             # Log evaluation metrics if test data provided
             if X_test is not None and y_test is not None:
                 assert self.model is not None
-                from sklearn.metrics import (
+                from sklearn.metrics import (  # type: ignore
                     accuracy_score,
                     precision_score,
                     recall_score,
@@ -159,7 +159,7 @@ class SVMModel:
             # Log evaluation metrics if test data provided
             if X_test is not None and y_test is not None:
                 assert self.model is not None
-                from sklearn.metrics import (
+                from sklearn.metrics import (  # type: ignore
                     accuracy_score,
                     precision_score,
                     recall_score,
@@ -245,7 +245,7 @@ class RandomForestModel:
             # Log evaluation metrics if test data provided
             if X_test is not None and y_test is not None:
                 assert self.model is not None
-                from sklearn.metrics import (
+                from sklearn.metrics import (  # type: ignore
                     accuracy_score,
                     precision_score,
                     recall_score,
@@ -345,7 +345,7 @@ class XGBoostModel:
             # Log evaluation metrics if test data provided
             if X_test is not None and y_test is not None:
                 assert self.model is not None
-                from sklearn.metrics import (
+                from sklearn.metrics import (  # type: ignore
                     accuracy_score,
                     precision_score,
                     recall_score,
