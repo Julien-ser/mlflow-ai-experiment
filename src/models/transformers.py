@@ -7,9 +7,7 @@ Supports BERT, RoBERTa, DeBERTa, XLNet with custom classification heads.
 
 import torch
 from transformers import (
-    AutoModel,
     AutoTokenizer,
-    AutoModelForSequenceClassification,
     BertForSequenceClassification,
     RobertaForSequenceClassification,
     DebertaForSequenceClassification,
@@ -25,7 +23,7 @@ from transformers import (
 import numpy as np
 import mlflow
 import mlflow.transformers  # type: ignore
-from typing import Dict, Any, Optional, Union, List
+from typing import Optional, Union, List
 
 # TensorFlow availability
 try:
@@ -515,7 +513,7 @@ class TransformerModel:
                 # Create a simple pipeline for inference
                 from transformers import pipeline
 
-                classifier = pipeline(
+                pipeline(
                     "text-classification",
                     model=self.model,
                     tokenizer=self.tokenizer,

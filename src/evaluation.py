@@ -3,8 +3,6 @@ Evaluation metrics for classification models.
 """
 
 import time
-import psutil  # type: ignore
-import numpy as np
 from sklearn.metrics import (  # type: ignore
     accuracy_score,
     precision_score,
@@ -64,7 +62,7 @@ def measure_inference_latency(model, X, num_samples=100):
 
         start = time.time()
         for _ in range(10):  # Repeat to get stable average
-            predictions = model.predict(X_test)
+            model.predict(X_test)
         end = time.time()
 
         avg_latency = ((end - start) / (10 * len(X_test))) * 1000

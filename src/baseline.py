@@ -88,7 +88,6 @@ class BaselineModel:
             Dictionary with metrics and confusion matrix
         """
         y_pred = self.predict(X_test)
-        y_pred_proba = self.predict_proba(X_test)[:, 1]
 
         metrics = {
             "accuracy": accuracy_score(y_test, y_pred),

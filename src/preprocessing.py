@@ -3,7 +3,7 @@ Preprocessing utilities for text classification.
 """
 
 import re
-from typing import Dict, Tuple, List, Optional, Union, Any
+from typing import Dict, Tuple, Any
 from sklearn.feature_extraction.text import TfidfVectorizer  # type: ignore
 from .tokenizers import TransformerTokenizer
 import torch

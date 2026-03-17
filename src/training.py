@@ -28,12 +28,9 @@ except ImportError:
     optim: Any = None  # type: ignore
 
 # Optional TensorFlow import
-try:
-    import tensorflow as tf  # type: ignore
+import importlib.util
 
-    TF_AVAILABLE = True
-except ImportError:
-    TF_AVAILABLE = False
+TF_AVAILABLE = importlib.util.find_spec("tensorflow") is not None
 
 from .models.classical import (
     LogisticRegressionModel,
