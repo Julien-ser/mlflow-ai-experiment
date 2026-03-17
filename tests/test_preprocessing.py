@@ -5,7 +5,7 @@ Tests for preprocessing module.
 import pytest
 import pandas as pd
 import torch
-from sklearn.feature_extraction.text import TfidfVectorizer
+
 
 from src.preprocessing import (
     clean_text,
@@ -205,7 +205,7 @@ class TestPreprocessClassical:
 
     def test_cleaned_text_column_added(self, sample_dataframes):
         train_df, val_df, test_df = sample_dataframes
-        result = preprocess_classical(train_df, val_df, test_df)
+        preprocess_classical(train_df, val_df, test_df)
 
         assert "cleaned_text" in train_df.columns
         assert "cleaned_text" in val_df.columns

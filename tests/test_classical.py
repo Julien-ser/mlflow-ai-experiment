@@ -34,7 +34,6 @@ def test_logistic_regression():
 
     # Test save and load
     import tempfile
-    import joblib
 
     with tempfile.NamedTemporaryFile(suffix=".pkl", delete=False) as f:
         path = f.name
