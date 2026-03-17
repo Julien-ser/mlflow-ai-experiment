@@ -137,15 +137,15 @@ class TestFactoryFunctions:
         assert model.num_labels == 5
 
     @pytest.mark.parametrize(
-        "model_name,expected_type",
+        "model_type,model_name",
         [
-            ("bert-base-uncased", "bert"),
-            ("roberta-base", "roberta"),
-            ("microsoft/deberta-v3-base", "deberta"),
-            ("xlnet-base-cased", "xlnet"),
-            ("google/electra-base-discriminator", "electra"),
-            ("albert-base-v2", "albert"),
-            ("distilbert-base-uncased", "distilbert"),
+            ("bert", "bert-base-uncased"),
+            ("roberta", "roberta-base"),
+            ("deberta", "microsoft/deberta-v3-base"),
+            ("xlnet", "xlnet-base-cased"),
+            ("electra", "google/electra-base-discriminator"),
+            ("albert", "albert-base-v2"),
+            ("distilbert", "distilbert-base-uncased"),
             ("gpt2", "gpt2"),
         ],
     )
