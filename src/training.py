@@ -9,15 +9,10 @@ from __future__ import annotations
 import time
 import logging
 from pathlib import Path
-from typing import Dict, Any, Optional, Tuple, TYPE_CHECKING
+from typing import Dict, Any, Optional, Tuple
 import numpy as np
 import mlflow
 import joblib
-
-if TYPE_CHECKING:
-    from torch.utils.data import DataLoader
-    import torch
-    import torch.optim as optim
 
 # Runtime imports (optional PyTorch)
 try:
