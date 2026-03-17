@@ -6,25 +6,23 @@ checkpointing, early stopping, mixed precision, and comprehensive experiment tra
 
 from __future__ import annotations
 
-import os
 import time
-import json
 import logging
 from pathlib import Path
-from typing import Dict, Any, Optional, List, Tuple, TYPE_CHECKING
+from typing import Dict, Any, Optional, Tuple, TYPE_CHECKING
 import numpy as np
 import mlflow
 import joblib
 
 if TYPE_CHECKING:
-    from torch.utils.data import DataLoader, Dataset
+    from torch.utils.data import DataLoader
     import torch
     import torch.optim as optim
 
 # Runtime imports (optional PyTorch)
 try:
     import torch
-    from torch.utils.data import DataLoader, Dataset
+    from torch.utils.data import DataLoader
     import torch.optim as optim
 
     TORCH_AVAILABLE = True
