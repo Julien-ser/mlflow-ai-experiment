@@ -8,6 +8,7 @@ import os
 import yaml  # type: ignore
 import mlflow
 from pathlib import Path
+from typing import Any
 
 
 def load_config(config_path: str = "config.yaml") -> dict:
@@ -33,7 +34,7 @@ def setup_mlflow_tracking(config: dict) -> None:
         print(f"✓ MLruns directory ready: {mlruns_path}")
 
 
-def get_or_create_experiment(config: dict) -> mlflow.entities.Experiment:
+def get_or_create_experiment(config: dict) -> Experiment:
     """Get existing experiment or create new one."""
 
     experiment_name = config["experiment"]["name"]
@@ -59,7 +60,7 @@ def get_or_create_experiment(config: dict) -> mlflow.entities.Experiment:
     return experiment
 
 
-def initialize_mlflow() -> mlflow.entities.Experiment:
+def initialize_mlflow() -> "Experiment":
     """
     Initialize MLflow tracking and return the experiment object.
 

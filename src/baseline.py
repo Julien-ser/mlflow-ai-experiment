@@ -19,7 +19,7 @@ from sklearn.metrics import (  # type: ignore
     confusion_matrix,
 )
 import mlflow
-import mlflow.sklearn
+import mlflow.sklearn as mlflow_sklearn  # type: ignore
 
 
 class BaselineModel:
@@ -108,7 +108,7 @@ class BaselineModel:
         y_test: pd.Series,
         experiment_name: str = "baseline",
         run_name: str = "tfidf_logreg",
-    ) -> None:
+    ) -> Dict[str, Any]:
         """
         Train and log model to MLFlow.
 
@@ -120,6 +120,7 @@ class BaselineModel:
         """
         # Set MLFlow experiment
         mlflow.set_experiment(experiment_name)
+        metrics: Dict[str, Any] = {}
 
         with mlflow.start_run(run_name=run_name):
             # Log parameters
@@ -153,7 +154,7 @@ class BaselineModel:
             )
 
             # Log model
-            mlflow.sklearn.log_model(  # type: ignore
+            mlflow_sklearn.log_model(  # type: ignore
                 self.classifier, "model", registered_model_name="baseline_logreg"
             )
 
@@ -167,6 +168,8 @@ class BaselineModel:
             if active_run:
                 print(f"Baseline logged to MLFlow run: {active_run.info.run_id}")
             print(f"Metrics: {metrics}")
+
+        return metrics
 
     def save(self, path: str) -> None:
         """Save model and vectorizer to disk."""
