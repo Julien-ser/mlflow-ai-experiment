@@ -258,7 +258,6 @@ class Trainer:
         total_start_time = time.time()
 
         for epoch in range(num_epochs):
-            epoch_start = time.time()
             self.model.train()
             total_loss = 0.0
             for batch in train_loader:  # type: ignore
