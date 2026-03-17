@@ -45,7 +45,7 @@ def compute_metrics(y_true, y_pred, y_proba=None):
 
         try:
             metrics["log_loss"] = log_loss(y_true, y_proba)
-        except:
+        except Exception:
             pass
 
     return metrics

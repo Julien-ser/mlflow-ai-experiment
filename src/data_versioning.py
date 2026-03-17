@@ -6,8 +6,7 @@ Provides deterministic versioning of datasets based on content hashes.
 import hashlib
 import json
 import os
-from pathlib import Path
-from typing import Dict, List, Optional, Union
+from typing import Dict, Optional
 import pandas as pd  # type: ignore
 import yaml  # type: ignore
 

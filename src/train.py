@@ -1,8 +1,8 @@
 import argparse
-import yaml
+import yaml  # type: ignore
 import logging
-from sklearn.model_selection import train_test_split
-from datasets import load_dataset
+from sklearn.model_selection import train_test_split  # type: ignore
+from datasets import load_dataset  # type: ignore
 from .training import Trainer
 from .preprocessing import create_tfidf_features
 from .tokenizers import TransformerTokenizer

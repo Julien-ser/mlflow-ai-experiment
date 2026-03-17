@@ -6,7 +6,6 @@ Supports BERT, RoBERTa, DeBERTa, XLNet with custom classification heads.
 # mypy: ignore-errors
 
 import torch
-import torch.nn as nn
 from transformers import (
     AutoModel,
     AutoTokenizer,

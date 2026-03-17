@@ -4,7 +4,6 @@ Tests for transformer model implementations.
 
 import pytest
 import torch
-import numpy as np
 from src.models.transformers import (
     TransformerModel,
     BERTModel,

@@ -5,7 +5,6 @@ Tests for preprocessing module.
 import pytest
 import pandas as pd
 import torch
-import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 from src.preprocessing import (

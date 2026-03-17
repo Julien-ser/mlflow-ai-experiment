@@ -8,7 +8,6 @@ from sklearn.calibration import CalibratedClassifierCV  # type: ignore
 from sklearn.ensemble import RandomForestClassifier  # type: ignore
 from sklearn.model_selection import GridSearchCV  # type: ignore
 import xgboost as xgb
-import numpy as np
 import joblib  # type: ignore
 import mlflow
 import mlflow.sklearn as mlflow_sklearn  # type: ignore

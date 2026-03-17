@@ -12,7 +12,7 @@ from pathlib import Path
 from typing import Dict, Any, Optional, Tuple
 import numpy as np
 import mlflow
-import joblib
+import joblib  # type: ignore
 
 # Runtime imports (optional PyTorch)
 try:
@@ -23,9 +23,9 @@ try:
     TORCH_AVAILABLE = True
 except ImportError:
     TORCH_AVAILABLE = False
-    torch: Any = None
-    DataLoader: Any = None
-    optim: Any = None
+     torch: Any = None  # type: ignore
+     DataLoader: Any = None  # type: ignore
+     optim: Any = None  # type: ignore
 
 # Optional TensorFlow import
 try:
@@ -67,7 +67,7 @@ class Trainer:
         if TORCH_AVAILABLE:
             assert torch is not None
             self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        self.model = None
+        self.model: Optional[Any] = None
         self.optimizer = None
         self.scaler = None  # Initialized lazily in _train_transformer if needed
         self.early_stopping_counter = 0
