@@ -86,8 +86,6 @@ class Trainer:
             experiment_name = config.get("mlflow_experiment_name", "experiment")
             mlflow.set_experiment(experiment_name)
 
-        self.start_time = time.time()
-
     def _prepare_model(self, model_config: Dict[str, Any]) -> None:
         """
         Prepare model based on type and backend.
