@@ -17,7 +17,7 @@ def load_imdb_dataset(config_path="config.yaml"):
     data_config = config["data"]
 
     # Load dataset from HuggingFace
-    dataset = load_dataset(data_config["source"], data_config["dataset_name"])
+    dataset = load_dataset(data_config["dataset_name"])
 
     # Get train and test splits
     train_data = dataset[data_config["train_split"]]
