@@ -2,7 +2,7 @@
 **Mission:** Use MLFlow to compare all state of the art ML models on some domain of your choice
 
 ## Phase 1: Planning & Setup
-- [ ] Define specific domain and problem: Select text classification domain using IMDB movie reviews dataset for sentiment analysis, document requirements and success criteria
+- [x] Define specific domain and problem: Select text classification domain using IMDB movie reviews dataset for sentiment analysis, document requirements and success criteria
   - Deliverable: `docs/problem-statement.md` with dataset choice, evaluation metrics (accuracy, F1, inference time), and baseline expectations
 - [ ] Set up MLFlow tracking infrastructure: Configure MLFlow tracking URI (local directory or Docker), initialize experiments, create project structure
   - Deliverable: `mlruns/` directory with tracking configured, `setup_mlflow.py` script, and `config.yaml` for experiment parameters
