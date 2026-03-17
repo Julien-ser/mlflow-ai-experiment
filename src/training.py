@@ -341,21 +341,21 @@ class Trainer:
         model_config = self.config.get("model", {})
         self._prepare_model(model_config)
 
-        # Log parameters
-        if self.mlflow_enabled:
-            mlflow.log_params(self.config)
-
-        # Train based on model type
+        # Choose training function based on model type
         if self.model_type == "classical":
-            if not isinstance(train_dataset, tuple) or len(train_dataset) != 2:
-                raise ValueError(
-                    "For classical models, train_dataset must be a tuple (X, y)"
-                )
-            metrics = self._train_classical(train_dataset, valid_dataset)
+            train_func = self._train_classical
         elif self.model_type == "transformer":
-            metrics = self._train_transformer(train_dataset, valid_dataset)
+            train_func = self._train_transformer
         else:
             raise ValueError(f"Unsupported model_type: {self.model_type}")
+
+        # Execute training with or without MLflow run context
+        if self.mlflow_enabled:
+            with mlflow.start_run():
+                mlflow.log_params(self.config)
+                metrics = train_func(train_dataset, valid_dataset)
+        else:
+            metrics = train_func(train_dataset, valid_dataset)
 
         logger.info("Training completed. Metrics: %s", metrics)
         return metrics
@@ -404,7 +404,8 @@ class Trainer:
             raise ValueError(f"Unsupported model_type: {self.model_type}")
 
         if self.mlflow_enabled:
-            for k, v in metrics.items():
-                mlflow.log_metric(f"test_{k}", v)
+            with mlflow.start_run():
+                for k, v in metrics.items():
+                    mlflow.log_metric(f"test_{k}", v)
 
         return metrics
