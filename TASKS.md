@@ -4,7 +4,7 @@
 ## Phase 1: Planning & Setup
 - [x] Define specific domain and problem: Select text classification domain using IMDB movie reviews dataset for sentiment analysis, document requirements and success criteria
   - Deliverable: `docs/problem-statement.md` with dataset choice, evaluation metrics (accuracy, F1, inference time), and baseline expectations
-- [ ] Set up MLFlow tracking infrastructure: Configure MLFlow tracking URI (local directory or Docker), initialize experiments, create project structure
+- [x] Set up MLFlow tracking infrastructure: Configure MLFlow tracking URI (local directory or Docker), initialize experiments, create project structure
   - Deliverable: `mlruns/` directory with tracking configured, `setup_mlflow.py` script, and `config.yaml` for experiment parameters
 - [ ] Create development environment: Create `requirements.txt` with core dependencies (mlflow, transformers, datasets, torch/tensorflow, scikit-learn, pandas, numpy) and set up virtual environment
   - Deliverable: `requirements.txt` file, `environment.yml` (conda) or `pyproject.toml`, and verified working environment with all packages installed

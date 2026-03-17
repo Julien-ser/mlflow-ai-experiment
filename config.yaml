@@ -1,0 +1,52 @@
+# MLFlow Configuration
+tracking:
+  uri: "mlruns"  # Local directory for MLflow tracking data
+  default_experiment: "imdb_sentiment_analysis"
+
+experiment:
+  name: "imdb_sentiment_analysis"
+  artifact_location: "mlruns"
+  tags:
+    project: "mlflow-ai-experiment"
+    domain: "text_classification"
+    dataset: "imdb_movie_reviews"
+
+data:
+  version: "v1.0"
+  source: "huggingface/datasets"
+  dataset_name: "imdb"
+  train_split: "train"
+  test_split: "test"
+  validation_split_ratio: 0.1
+
+models:
+  classical:
+    - "logistic_regression"
+    - "svm"
+    - "random_forest"
+    - "xgboost"
+    - "lightgbm"
+  transformers:
+    - "bert"
+    - "roberta"
+    - "distilbert"
+    - "electra"
+    - "albert"
+    - "deberta"
+    - "xlnet"
+
+training:
+  random_seed: 42
+  max_epochs: 10
+  batch_size: 32
+  learning_rate: 2e-5
+  early_stopping_patience: 3
+
+evaluation:
+  metrics:
+    - "accuracy"
+    - "f1"
+    - "precision"
+    - "recall"
+    - "inference_latency"
+    - "memory_footprint"

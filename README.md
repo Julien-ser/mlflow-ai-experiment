@@ -20,6 +20,8 @@ This project uses **MLFlow** to systematically compare state-of-the-art machine 
 ├── README.md              # Project documentation
 ├── TASKS.md              # Development task tracking
 ├── requirements.txt      # Python dependencies
+├── config.yaml           # MLflow and experiment configuration
+├── setup_mlflow.py       # MLflow tracking setup script
 ├── .github/workflows/    # CI/CD pipelines
 │   └── test.yml
 ├── docs/                 # Documentation and problem statement
@@ -109,7 +111,10 @@ All experiments are automatically tracked in MLFlow with:
 ## Current Status
 **Phase 1: Planning & Setup** - In Progress
 - [x] Problem statement and requirements defined (see [docs/problem-statement.md](docs/problem-statement.md))
-- [ ] MLFlow tracking infrastructure setup
+- [x] MLFlow tracking infrastructure setup
+  - `config.yaml` with experiment parameters
+  - `setup_mlflow.py` script to initialize tracking
+  - Project directory structure created
 - [ ] Development environment creation
 - [ ] Baseline model implementation
 
