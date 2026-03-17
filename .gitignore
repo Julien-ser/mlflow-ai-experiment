@@ -28,6 +28,7 @@ Thumbs.db
 # Experiment logs (runtime generated)
 logs/*.log
 logs/*.json
+logs/*.md
 
 # Data (raw and processed raw sources - keep structure but not content)
 # data/raw/*
