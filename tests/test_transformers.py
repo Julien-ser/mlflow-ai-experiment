@@ -84,6 +84,10 @@ class TestSpecificModels:
             (RoBERTaModel, "roberta-base"),
             (DeBERTaModel, "microsoft/deberta-v3-base"),
             (XLNetModel, "xlnet-base-cased"),
+            (ELECTRAModel, "google/electra-base-discriminator"),
+            (ALBERTModel, "albert-base-v2"),
+            (DistilBERTModel, "distilbert-base-uncased"),
+            (GPT2Model, "gpt2"),
         ],
     )
     def test_default_model_names(self, model_class, expected_name):
@@ -98,6 +102,10 @@ class TestSpecificModels:
             (RoBERTaModel, "roberta-large"),
             (DeBERTaModel, "microsoft/deberta-v3-large"),
             (XLNetModel, "xlnet-large-cased"),
+            (ELECTRAModel, "google/electra-large-discriminator"),
+            (ALBERTModel, "albert-large-v2"),
+            (DistilBERTModel, "distilbert-base-uncased"),
+            (GPT2Model, "gpt2-medium"),
         ],
     )
     def test_custom_model_names(self, model_class, custom_name):
@@ -116,6 +124,10 @@ class TestFactoryFunctions:
             ("roberta", RoBERTaModel),
             ("deberta", DeBERTaModel),
             ("xlnet", XLNetModel),
+            ("electra", ELECTRAModel),
+            ("albert", ALBERTModel),
+            ("distilbert", DistilBERTModel),
+            ("gpt2", GPT2Model),
         ],
     )
     def test_create_transformer_model(self, model_type, expected_class):
@@ -131,13 +143,28 @@ class TestFactoryFunctions:
             ("roberta-base", "roberta"),
             ("microsoft/deberta-v3-base", "deberta"),
             ("xlnet-base-cased", "xlnet"),
-            ("distilbert-base-uncased", "bert"),  # distilbert contains 'bert'
+            ("google/electra-base-discriminator", "electra"),
+            ("albert-base-v2", "albert"),
+            ("distilbert-base-uncased", "distilbert"),
+            ("gpt2", "gpt2"),
         ],
     )
     def test_create_transformer_model_from_name(self, model_name, expected_type):
         """Test create_transformer_model_from_name factory."""
         model = create_transformer_model_from_name(model_name, num_labels=3)
-        assert isinstance(model, (BERTModel, RoBERTaModel, DeBERTaModel, XLNetModel))
+        assert isinstance(
+            model,
+            (
+                BERTModel,
+                RoBERTaModel,
+                DeBERTaModel,
+                XLNetModel,
+                ELECTRAModel,
+                ALBERTModel,
+                DistilBERTModel,
+                GPT2Model,
+            ),
+        )
         assert model.model_name == model_name
         assert model.num_labels == 3
 
@@ -158,6 +185,10 @@ class TestModelIntegrity:
             ("roberta", "roberta-base"),
             ("deberta", "microsoft/deberta-v3-base"),
             ("xlnet", "xlnet-base-cased"),
+            ("electra", "google/electra-base-discriminator"),
+            ("albert", "albert-base-v2"),
+            ("distilbert", "distilbert-base-uncased"),
+            ("gpt2", "gpt2"),
         ],
     )
     def test_build_model(self, model_type, model_name):
