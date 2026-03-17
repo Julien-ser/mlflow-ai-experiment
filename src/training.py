@@ -9,7 +9,7 @@ from __future__ import annotations
 import time
 import logging
 from pathlib import Path
-from typing import Dict, Any, Optional, Tuple
+from typing import Dict, Any, Optional, Tuple, List
 import numpy as np
 import mlflow
 import joblib  # type: ignore
@@ -69,9 +69,7 @@ class Trainer:
             self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model: Optional[Any] = None
         self.optimizer: Optional[Any] = None
-        self.scaler: Optional[Any] = (
-            None  # Initialized lazily in _train_transformer if needed
-        )
+        self.scaler: Optional[Any] = None
         self.early_stopping_counter = 0
         self.checkpoint_path = Path(config.get("checkpoint_dir", "checkpoints"))
         self.checkpoint_path.mkdir(parents=True, exist_ok=True)
@@ -279,8 +277,8 @@ class Trainer:
             if valid_loader is not None:
                 self.model.eval()
                 val_loss = 0.0
-                all_preds: list[Any] = []
-                all_labels: list[Any] = []
+                all_preds: List[Any] = []
+                all_labels: List[Any] = []
                 with torch.no_grad():
                     for batch in valid_loader:  # type: ignore
                         batch = {k: v.to(self.device) for k, v in batch.items()}
@@ -393,8 +391,8 @@ class Trainer:
                     batch_size=self.config.get("batch_size", 32),
                     shuffle=False,
                 )
-            all_preds: list[Any] = []
-            all_labels: list[Any] = []
+            all_preds: List[Any] = []
+            all_labels: List[Any] = []
             with torch.no_grad():
                 for batch in loader:  # type: ignore
                     batch = {k: v.to(self.device) for k, v in batch.items()}
