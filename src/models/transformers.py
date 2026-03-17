@@ -117,7 +117,7 @@ class TransformerModel:
             return self.MODEL_CLASSES[model_type]
         elif self.backend == "tensorflow":
             # Lazy import to avoid top-level dependency
-            from transformers import TFAutoModelForSequenceClassification
+            from transformers import TFAutoModelForSequenceClassification  # type: ignore
 
             return TFAutoModelForSequenceClassification
         else:
@@ -189,6 +189,7 @@ class TransformerModel:
         """
         if self.tokenizer is None:
             self.load_tokenizer()
+        assert self.tokenizer is not None
 
         # Determine return tensor format based on backend
         if self.backend == "tensorflow":
@@ -272,7 +273,7 @@ class TransformerModel:
                 import tensorflow as tf
 
                 tf.keras.mixed_precision.set_global_policy("mixed_float16")
-            from transformers import TFTrainer, TFTrainingArguments
+            from transformers import TFTrainer, TFTrainingArguments  # type: ignore
 
             TrainerClass = TFTrainer
             ArgsClass = TFTrainingArguments
@@ -466,7 +467,7 @@ class TransformerModel:
         self.build_model()
 
     def log_to_mlflow(
-        self, experiment_name: str, run_name: str = None, train_result=None
+        self, experiment_name: str, run_name: Optional[str] = None, train_result=None
     ):
         """
         Log model, parameters, and metrics to MLflow.
@@ -522,7 +523,7 @@ class TransformerModel:
                     device=0 if self.device.type == "cuda" else -1,
                 )
 
-                mlflow.transformers.log_model(
+                 mlflow.transformers.log_model(  # type: ignore
                     transformers_model={
                         "model": self.model,
                         "tokenizer": self.tokenizer,
@@ -530,7 +531,7 @@ class TransformerModel:
                     artifact_path="model",
                     task="text-classification",
                     input_example="Sample text for classification",
-                    signature=mlflow.models.signature.infer_signature(
+                     signature=mlflow.models.signature.infer_signature(  # type: ignore
                         ["input text"], [{"label": "positive", "score": 0.9}]
                     ),
                 )

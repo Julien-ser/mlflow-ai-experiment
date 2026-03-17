@@ -260,7 +260,7 @@ class Trainer:
             epoch_start = time.time()
             self.model.train()
             total_loss = 0.0
-            for batch in train_loader:
+            for batch in train_loader:  # type: ignore
                 batch = {k: v.to(self.device) for k, v in batch.items()}
                 self.optimizer.zero_grad()
                 if self.scaler:
@@ -287,7 +287,7 @@ class Trainer:
                 all_preds = []
                 all_labels = []
                 with torch.no_grad():
-                    for batch in valid_loader:
+                    for batch in valid_loader:  # type: ignore
                         batch = {k: v.to(self.device) for k, v in batch.items()}
                         outputs = self.model(**batch)
                         loss = outputs.loss
@@ -401,7 +401,7 @@ class Trainer:
             all_preds = []
             all_labels = []
             with torch.no_grad():
-                for batch in loader:
+                for batch in loader:  # type: ignore
                     batch = {k: v.to(self.device) for k, v in batch.items()}
                     outputs = self.model(**batch)
                     logits = outputs.logits

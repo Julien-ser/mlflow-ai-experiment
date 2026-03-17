@@ -12,7 +12,7 @@ import numpy as np
 import joblib  # type: ignore
 import mlflow
 import mlflow.sklearn as mlflow_sklearn  # type: ignore
-from typing import Optional, Any
+from typing import Optional, Any, Dict
 
 
 class LogisticRegressionModel:
@@ -77,7 +77,7 @@ class LogisticRegressionModel:
 
                 y_pred = self.predict(X_test)
                 y_pred_proba = (
-                    self.predict_proba(X_test)[:, 1]
+                    self.predict_proba(X_test)[:, 1]  # type: ignore
                     if len(self.model.classes_) == 2
                     else None
                 )
@@ -197,8 +197,8 @@ class SVMModel:
 class RandomForestModel:
     """Random Forest classifier."""
 
-    def __init__(self, params=None):
-        self.params = params or {
+    def __init__(self, params: Optional[Dict[str, Any]] = None):
+        self.params: Dict[str, Any] = params or {
             "n_estimators": 100,
             "max_depth": 10,
             "random_state": 42,
@@ -208,7 +208,7 @@ class RandomForestModel:
 
     def train(self, X_train, y_train, X_val, y_val):
         """Train Random Forest model."""
-        self.model = RandomForestClassifier(**self.params)
+        self.model = RandomForestClassifier(**self.params)  # type: ignore
         self.model.fit(X_train, y_train)
 
         train_score = self.model.score(X_train, y_train)
@@ -254,7 +254,7 @@ class RandomForestModel:
 
                 y_pred = self.predict(X_test)
                 y_pred_proba = (
-                    self.predict_proba(X_test)[:, 1]
+                    self.predict_proba(X_test)[:, 1]  # type: ignore
                     if len(self.model.classes_) == 2
                     else None
                 )
@@ -354,7 +354,7 @@ class XGBoostModel:
 
                 y_pred = self.predict(X_test)
                 y_pred_proba = (
-                    self.predict_proba(X_test)[:, 1]
+                    self.predict_proba(X_test)[:, 1]  # type: ignore
                     if len(self.model.classes_) == 2
                     else None
                 )
