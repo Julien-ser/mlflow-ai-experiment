@@ -34,6 +34,14 @@ matplotlib>=3.7.0
 seaborn>=0.12.0
 psutil>=5.9.0
 
+# Type stubs for mypy
+pandas-stubs>=2.0.0
+types-seaborn>=0.12.0
+types-pyYAML>=6.0
+types-psutil>=5.9.0
+types-joblib>=1.3.0
+scikit-learn-stubs>=1.3.0
+
 # API and deployment
 fastapi>=0.100.0
 uvicorn>=0.23.0

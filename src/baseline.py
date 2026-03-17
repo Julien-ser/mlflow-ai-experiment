@@ -163,10 +163,10 @@ class BaselineModel:
             mlflow.log_artifact(vectorizer_path)
             os.remove(vectorizer_path)
 
-            print(f"Baseline logged to MLFlow run: {mlflow.active_run().info.run_id}")
+            active_run = mlflow.active_run()
+            if active_run:
+                print(f"Baseline logged to MLFlow run: {active_run.info.run_id}")
             print(f"Metrics: {metrics}")
-
-            return metrics
 
     def save(self, path: str) -> None:
         """Save model and vectorizer to disk."""

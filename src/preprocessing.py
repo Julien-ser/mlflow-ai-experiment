@@ -3,7 +3,7 @@ Preprocessing utilities for text classification.
 """
 
 import re
-from typing import Dict, Tuple, List, Optional, Union
+from typing import Dict, Tuple, List, Optional, Union, Any
 from sklearn.feature_extraction.text import TfidfVectorizer
 from .tokenizers import TransformerTokenizer
 import torch
@@ -83,7 +83,7 @@ def preprocess_transformer(
     max_length: int = 512,
     padding: bool = True,
     truncation: bool = True,
-) -> Dict[str, any]:
+) -> Dict[str, Any]:
     """
     Preprocess datasets for transformer models: tokenize text.
 
@@ -139,7 +139,7 @@ def preprocess_classical(
     test_df,
     max_features: int = 5000,
     ngram_range: Tuple[int, int] = (1, 2),
-) -> Dict[str, any]:
+) -> Dict[str, Any]:
     """
     Preprocess datasets for classical ML: clean text and create TF-IDF features.
 
@@ -182,7 +182,7 @@ def preprocess_dataset(
     test_df,
     mode: str = "classical",
     **kwargs,
-) -> Dict[str, any]:
+) -> Dict[str, Any]:
     """
     Unified preprocessing interface for both classical and transformer models.
 

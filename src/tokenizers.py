@@ -108,7 +108,9 @@ class TransformerTokenizer:
 
     def decode(self, token_ids: List[int]) -> str:
         """Decode token IDs back to text."""
-        return self.tokenizer.decode(token_ids)
+        result = self.tokenizer.decode(token_ids)
+        # Ensure result is a string (tokenizer.decode may return list for batched inputs)
+        return result if isinstance(result, str) else result[0] if result else ""
 
     def save(self, path: str) -> None:
         """Save tokenizer to disk."""
