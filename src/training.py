@@ -29,7 +29,6 @@ from .evaluation import compute_metrics
 # Optional PyTorch import
 try:
     import torch
-    import torch.optim as optim
     from torch.utils.data import DataLoader
 
     TORCH_AVAILABLE = True
@@ -37,7 +36,6 @@ except ImportError:
     TORCH_AVAILABLE = False
     torch: Any = None  # type: ignore
     DataLoader: Any = None  # type: ignore
-    optim: Any = None  # type: ignore
 
 # Check TensorFlow availability
 TF_AVAILABLE = importlib.util.find_spec("tensorflow") is not None
@@ -66,6 +64,7 @@ class Trainer:
             assert torch is not None
             self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model: Optional[Any] = None
+        self.transformer_model: Optional[Any] = None
         self.optimizer: Optional[Any] = None
         self.scaler: Optional[Any] = None
         self.early_stopping_counter = 0
@@ -95,78 +94,37 @@ class Trainer:
             self.model = model_cls[model_config["name"]](model_config["params"])
             self.optimizer = None
         elif self.model_type == "transformer":
-            if not TORCH_AVAILABLE:
-                raise RuntimeError("Transformer training requires PyTorch")
-            transformer = TransformerModel(
-                model_name=model_config["model_name"],
-                num_labels=model_config.get("num_labels", 2),
-                config=model_config,
-            )
+            if not TORCH_AVAILABLE and self.backend == "pytorch":
+                raise RuntimeError(
+                    "PyTorch is not available for transformer training with PyTorch backend"
+                )
+            # Extract hyperparameters from config
+            transformer_params = {
+                "model_name": model_config["model_name"],
+                "num_labels": model_config.get("num_labels", 2),
+                "dropout": model_config.get("dropout", 0.1),
+                "max_seq_length": model_config.get("max_seq_length", 512),
+                "learning_rate": self.config.get("learning_rate", 2e-5),
+                "batch_size": self.config.get("batch_size", 16),
+                "num_train_epochs": self.config.get("num_epochs", 3),
+                "weight_decay": self.config.get("optimizer", {}).get(
+                    "weight_decay", 0.01
+                ),
+                "warmup_steps": self.config.get("optimizer", {}).get(
+                    "warmup_steps", 500
+                ),
+                "backend": self.backend,
+                "early_stopping_patience": self.config.get(
+                    "early_stopping_patience", 5
+                ),
+            }
+            transformer = TransformerModel(**transformer_params)
             transformer.build_model()
+            # Store both the wrapper and the raw model
+            self.transformer_model = transformer
             self.model = transformer.model
         else:
             raise ValueError(f"Unsupported model type: {self.model_type}")
-
-    def _prepare_optimizer(
-        self, optimizer_config: Optional[Dict[str, Any]] = None
-    ) -> None:
-        if optimizer_config is None:
-            optimizer_config = {}
-        optimizer_name = optimizer_config.get("name", "adam")
-        # Fallback to top-level learning_rate if not specified in optimizer_config
-        lr = float(optimizer_config.get("lr", self.config.get("learning_rate", 1e-4)))
-
-        if self.backend == "pytorch":
-            if not TORCH_AVAILABLE:
-                raise RuntimeError("PyTorch is not available")
-            assert self.model is not None, (
-                "Model must be initialized before preparing optimizer"
-            )
-            assert optim is not None
-            if optimizer_name == "adam":
-                self.optimizer = optim.Adam(self.model.parameters(), lr=lr)
-            elif optimizer_name == "adamw":
-                self.optimizer = optim.AdamW(self.model.parameters(), lr=lr)
-            elif optimizer_name == "sgd":
-                self.optimizer = optim.SGD(self.model.parameters(), lr=lr)
-            else:
-                raise ValueError(f"Unsupported optimizer: {optimizer_name}")
-        elif self.backend == "tensorflow":
-            raise NotImplementedError("TensorFlow backend not yet implemented")
-        else:
-            raise ValueError(f"Unsupported backend: {self.backend}")
-
-    def _prepare_dataloaders(
-        self,
-        train_dataset: Any,
-        valid_dataset: Optional[Any] = None,
-    ) -> Dict[str, Any]:
-        """
-        Prepare train and validation DataLoaders.
-        """
-        assert DataLoader is not None, "DataLoader is not available"
-        assert self.device is not None, "Device not initialized"
-        batch_size = self.config.get("batch_size", 32)
-        num_workers = self.config.get("num_workers", 0)
-        pin_memory = self.device.type == "cuda"
-
-        train_loader = DataLoader(
-            train_dataset,
-            batch_size=batch_size,
-            shuffle=True,
-            num_workers=num_workers,
-            pin_memory=pin_memory,
-        )
-        valid_loader = None
-        if valid_dataset is not None:
-            valid_loader = DataLoader(
-                valid_dataset,
-                batch_size=batch_size,
-                shuffle=False,
-                num_workers=num_workers,
-                pin_memory=pin_memory,
-            )
-        return {"train": train_loader, "valid": valid_loader}
 
     def _train_classical(
         self,
@@ -215,119 +173,54 @@ class Trainer:
         valid_dataset: Optional[Any] = None,
     ) -> Dict[str, float]:
         """
-        Train a transformer model using PyTorch.
+        Train a transformer model by delegating to TransformerModel.train().
         """
-        if not TORCH_AVAILABLE:
-            raise RuntimeError("PyTorch is not available for transformer training")
-        assert torch is not None
-        assert self.model is not None
+        # Ensure transformer model is prepared
+        if not hasattr(self, "transformer_model") or self.transformer_model is None:
+            raise RuntimeError("Transformer model not prepared")
 
-        # Initialize scaler for mixed precision if needed
-        if self.scaler is None and self.config.get("mixed_precision", False):
-            from torch.cuda.amp import GradScaler
+        # Build training arguments from config to override defaults
+        training_args: Dict[str, Any] = {}
+        mp = self.config.get("mixed_precision", False)
+        if mp:
+            training_args["fp16"] = True
 
-            self.scaler = GradScaler()
+        # Set output_dir to our checkpoint path for unified checkpointing
+        training_args["output_dir"] = str(self.checkpoint_path)
 
-        # Prepare optimizer if not already
-        if self.optimizer is None:
-            optimizer_config = self.config.get("optimizer", {})
-            self._prepare_optimizer(optimizer_config)
-        assert self.optimizer is not None
+        # Configure evaluation and saving strategy
+        if valid_dataset is not None:
+            training_args["evaluation_strategy"] = "steps"
+            training_args["eval_steps"] = 500
+            training_args["save_strategy"] = "steps"
+            training_args["save_steps"] = 500
+            training_args["load_best_model_at_end"] = True
+            training_args["metric_for_best_model"] = "eval_accuracy"
+            training_args["greater_is_better"] = True
+        else:
+            training_args["evaluation_strategy"] = "no"
+            training_args["save_strategy"] = "epoch"
 
-        # Prepare dataloaders
-        loaders = self._prepare_dataloaders(train_dataset, valid_dataset)
-        train_loader = loaders["train"]
-        valid_loader = loaders["valid"]
+        # Delegate training to TransformerModel
+        train_result = self.transformer_model.train(
+            train_dataset=train_dataset,
+            eval_dataset=valid_dataset,
+            experiment_name=None,  # MLflow handled by outer Trainer
+            training_args=training_args,
+        )
 
-        # Import autocast for mixed precision
-        from torch.cuda.amp import autocast
+        # Collect metrics
+        metrics: Dict[str, float] = {}
+        if train_result is not None:
+            metrics["training_loss"] = train_result.training_loss
+            metrics["total_steps"] = train_result.global_step
+            if hasattr(train_result, "metrics") and train_result.metrics:
+                for key, value in train_result.metrics.items():
+                    # Convert to float if numeric
+                    if isinstance(value, (int, float)):
+                        metrics[key] = float(value)
 
-        num_epochs = self.config.get("num_epochs", 3)
-        best_val_metric = float("inf")
-        patience = self.config.get("early_stopping_patience", 5)
-
-        total_start_time = time.time()
-
-        for epoch in range(num_epochs):
-            self.model.train()
-            total_loss = 0.0
-            for batch in train_loader:  # type: ignore
-                batch = {k: v.to(self.device) for k, v in batch.items()}
-                self.optimizer.zero_grad()
-                if self.scaler:
-                    with autocast():
-                        outputs = self.model(**batch)
-                        loss = outputs.loss
-                    self.scaler.scale(loss).backward()
-                    self.scaler.step(self.optimizer)
-                    self.scaler.update()
-                else:
-                    outputs = self.model(**batch)
-                    loss = outputs.loss
-                    loss.backward()
-                    self.optimizer.step()
-                total_loss += loss.item()
-            avg_train_loss = total_loss / len(train_loader)
-
-            # Validation
-            val_metrics = None
-            avg_val_loss = None
-            if valid_loader is not None:
-                self.model.eval()
-                val_loss = 0.0
-                all_preds: List[Any] = []
-                all_labels: List[Any] = []
-                with torch.no_grad():
-                    for batch in valid_loader:  # type: ignore
-                        batch = {k: v.to(self.device) for k, v in batch.items()}
-                        outputs = self.model(**batch)
-                        loss = outputs.loss
-                        val_loss += loss.item()
-                        logits = outputs.logits
-                        preds = torch.argmax(logits, dim=-1)
-                        all_preds.extend(preds.cpu().numpy())
-                        all_labels.extend(batch["labels"].cpu().numpy())
-                avg_val_loss = val_loss / len(valid_loader)
-                val_metrics = compute_metrics(np.array(all_labels), np.array(all_preds))
-                val_metrics["val_loss"] = avg_val_loss
-
-            logger.info(
-                f"Epoch {epoch + 1}/{num_epochs} - Train loss: {avg_train_loss:.4f}"
-                + (f" - Val loss: {avg_val_loss:.4f}" if val_metrics else "")
-            )
-
-            # Log epoch metrics to MLflow
-            if self.mlflow_enabled:
-                mlflow.log_metric("train_loss", avg_train_loss, step=epoch)
-                if val_metrics:
-                    for k, v in val_metrics.items():
-                        mlflow.log_metric(k, v, step=epoch)
-
-            # Checkpoint: save best model based on validation loss
-            current_val_metric = (
-                avg_val_loss if avg_val_loss is not None else avg_train_loss
-            )
-            if current_val_metric < best_val_metric:
-                best_val_metric = current_val_metric
-                checkpoint_file = self.checkpoint_path / "best_model.pt"
-                torch.save(self.model.state_dict(), checkpoint_file)
-                logger.info(f"Checkpoint saved at {checkpoint_file}")
-                self.early_stopping_counter = 0
-            else:
-                self.early_stopping_counter += 1
-                if self.early_stopping_counter >= patience:
-                    logger.info("Early stopping triggered")
-                    break
-
-        total_time = time.time() - total_start_time
-        final_metrics = {"total_training_time": total_time}
-        if self.mlflow_enabled:
-            mlflow.log_metrics(final_metrics)
-            # Log best model as artifact
-            if self.checkpoint_path.joinpath("best_model.pt").exists():
-                mlflow.log_artifact(str(self.checkpoint_path / "best_model.pt"))
-
-        return final_metrics
+        return metrics
 
     def train(
         self,
