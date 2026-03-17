@@ -2,6 +2,7 @@
 Classical ML model implementations for text classification.
 """
 
+import numpy as np
 from sklearn.linear_model import LogisticRegression  # type: ignore
 from sklearn.svm import LinearSVC  # type: ignore
 from sklearn.calibration import CalibratedClassifierCV  # type: ignore
@@ -37,12 +38,12 @@ class LogisticRegressionModel:
 
         return {"train_accuracy": train_score, "val_accuracy": val_score}
 
-    def predict(self, X):
+    def predict(self, X) -> np.ndarray:
         """Make predictions."""
         assert self.model is not None
         return self.model.predict(X)
 
-    def predict_proba(self, X):
+    def predict_proba(self, X) -> np.ndarray:
         """Get prediction probabilities."""
         assert self.model is not None
         return self.model.predict_proba(X)
@@ -131,12 +132,12 @@ class SVMModel:
 
         return {"train_accuracy": train_score, "val_accuracy": val_score}
 
-    def predict(self, X):
+    def predict(self, X) -> np.ndarray:
         """Make predictions."""
         assert self.model is not None
-        return self.model.predict(X)
+        return self.model.predict(X)  # type: ignore[return-type]
 
-    def predict_proba(self, X):
+    def predict_proba(self, X) -> np.ndarray:
         """Get prediction probabilities."""
         assert self.model is not None
         return self.model.predict_proba(X)
@@ -220,10 +221,10 @@ class RandomForestModel:
         assert self.model is not None
         return self.model.predict(X)
 
-    def predict_proba(self, X):
+    def predict_proba(self, X) -> np.ndarray:
         """Get prediction probabilities."""
         assert self.model is not None
-        return self.model.predict_proba(X)
+        return self.model.predict_proba(X)  # type: ignore[return-type]
 
     def log_to_mlflow(
         self, experiment_name, run_name="random_forest", X_test=None, y_test=None
@@ -315,12 +316,12 @@ class XGBoostModel:
 
         return {"train_accuracy": train_score, "val_accuracy": val_score}
 
-    def predict(self, X):
+    def predict(self, X) -> np.ndarray:
         """Make predictions."""
         assert self.model is not None
         return self.model.predict(X)
 
-    def predict_proba(self, X):
+    def predict_proba(self, X) -> np.ndarray:
         """Get prediction probabilities."""
         assert self.model is not None
         return self.model.predict_proba(X)
