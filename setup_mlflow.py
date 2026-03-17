@@ -7,6 +7,7 @@ Initializes MLflow tracking infrastructure for the experiment tracking project.
 import os
 import yaml  # type: ignore
 import mlflow
+from mlflow.entities import Experiment
 from pathlib import Path
 from typing import Any
 
