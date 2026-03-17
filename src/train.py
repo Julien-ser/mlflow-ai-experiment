@@ -1,10 +1,8 @@
 import argparse
 import yaml
 import logging
-from pathlib import Path
 from sklearn.model_selection import train_test_split
 from datasets import load_dataset
-import torch
 from .training import Trainer
 from .preprocessing import create_tfidf_features
 from .tokenizers import TransformerTokenizer
