@@ -262,7 +262,7 @@ def main():
         # Log comparison to MLflow
         with mlflow.start_run(run_name="comparison_summary") as run:
             for model_name, row in comparison_df.iterrows():  # type: ignore
-                for col in test_metrics_cols:
+                for col in test_metrics_cols:  # type: ignore
                     value = float(row[col])
                     mlflow.log_metric(f"{model_name}_{col}", value)  # type: ignore
             mlflow.log_artifact(csv_path)
