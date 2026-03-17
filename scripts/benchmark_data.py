@@ -319,26 +319,26 @@ def main():
         for _, row in data_loading_results.iterrows():
             mlflow.log_metric(
                 f"data_loading_time_batch_{row['batch_size']}",
-                float(row["load_time_seconds"]),
+                float(row["load_time_seconds"]),  # type: ignore
             )
             mlflow.log_metric(
                 f"data_loading_throughput_batch_{row['batch_size']}",
-                float(row["throughput_samples_per_second"]),
+                float(row["throughput_samples_per_second"]),  # type: ignore
             )
             mlflow.log_metric(
                 f"data_loading_memory_batch_{row['batch_size']}",
-                float(row["memory_delta_mb"]),
+                float(row["memory_delta_mb"]),  # type: ignore
             )
 
         # Log classical preprocessing metrics
         for _, row in classical_results.iterrows():
             key = f"classical_batch{int(row['batch_size'])}_features{int(row['max_features'])}"
-            mlflow.log_metric(f"classical_time_{key}", float(row["total_time_seconds"]))
+            mlflow.log_metric(f"classical_time_{key}", float(row["total_time_seconds"]))  # type: ignore
             mlflow.log_metric(
                 f"classical_throughput_{key}",
-                float(row["throughput_samples_per_second"]),
+                float(row["throughput_samples_per_second"]),  # type: ignore
             )
-            mlflow.log_metric(f"classical_memory_{key}", float(row["memory_delta_mb"]))
+            mlflow.log_metric(f"classical_memory_{key}", float(row["memory_delta_mb"]))  # type: ignore
 
         # Log transformer preprocessing metrics
         for _, row in transformer_results.iterrows():
@@ -349,13 +349,14 @@ def main():
             ):
                 continue
             key = f"transformer_{row['model_name']}_batch{int(row['batch_size'])}"
-            mlflow.log_metric(f"tokenization_time_{key}", float(tokenization_time))
+            mlflow.log_metric(f"tokenization_time_{key}", float(tokenization_time))  # type: ignore
             mlflow.log_metric(
                 f"tokenization_throughput_{key}",
-                float(row["throughput_samples_per_second"]),
+                float(row["throughput_samples_per_second"]),  # type: ignore
             )
             mlflow.log_metric(
-                f"tokenization_memory_{key}", float(row["memory_delta_mb"])
+                f"tokenization_memory_{key}",
+                float(row["memory_delta_mb"]),  # type: ignore
             )
 
         # Save results as CSV artifacts
