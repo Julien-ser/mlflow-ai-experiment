@@ -1,0 +1,14 @@
+artifact_uri: /home/julien/Desktop/Free-Wiggum-opencode/projects/mlflow-ai-experiment/mlruns/414659492180341413/1d3969709e54421f89484c2d0217f4d4/artifacts
+end_time: 1773785581468
+entry_point_name: ''
+experiment_id: '414659492180341413'
+lifecycle_stage: active
+run_id: 1d3969709e54421f89484c2d0217f4d4
+run_name: receptive-ray-702
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1773785581440
+status: 3
+tags: []
+user_id: julien

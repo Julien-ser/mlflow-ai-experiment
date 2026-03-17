@@ -1,0 +1,14 @@
+artifact_uri: /home/julien/Desktop/Free-Wiggum-opencode/projects/mlflow-ai-experiment/mlruns/414659492180341413/c1055503ce0349b895c414849a6c9a53/artifacts
+end_time: null
+entry_point_name: ''
+experiment_id: '414659492180341413'
+lifecycle_stage: active
+run_id: c1055503ce0349b895c414849a6c9a53
+run_name: delicate-bird-789
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1773785693027
+status: 1
+tags: []
+user_id: julien

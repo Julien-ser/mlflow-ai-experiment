@@ -128,7 +128,7 @@ def main():
         raise ValueError(f"Unsupported model_type: {model_type}")
 
     # Initialize trainer
-    trainer = Trainer(config)
+    trainer = Trainer(config, model_type=model_type)
 
     # Train
     logger.info("Starting training...")

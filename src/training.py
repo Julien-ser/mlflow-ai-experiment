@@ -116,7 +116,7 @@ class Trainer:
             optimizer_config = {}
         optimizer_name = optimizer_config.get("name", "adam")
         # Fallback to top-level learning_rate if not specified in optimizer_config
-        lr = optimizer_config.get("lr", self.config.get("learning_rate", 1e-4))
+        lr = float(optimizer_config.get("lr", self.config.get("learning_rate", 1e-4)))
 
         if self.backend == "pytorch":
             if not TORCH_AVAILABLE:
