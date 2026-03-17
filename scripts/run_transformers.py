@@ -12,11 +12,11 @@ import torch
 # Add src to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
-from data_loader import load_imdb_dataset
+from data_loader import load_imdb_dataset  # type: ignore
 from models.transformers import (
     TransformerModel,
     create_transformer_model,
-)
+)  # type: ignore
 import mlflow
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 import numpy as np
@@ -91,19 +91,20 @@ def train_and_evaluate_transformer(
 
     # Calculate metrics
     test_accuracy = accuracy_score(test_labels, test_preds)
-    test_precision = precision_score(test_labels, test_preds, zero_division=0)
-    test_recall = recall_score(test_labels, test_preds, zero_division=0)
-    test_f1 = f1_score(test_labels, test_preds, zero_division=0)
+    test_precision = precision_score(test_labels, test_preds, zero_division="warn")
+    test_recall = recall_score(test_labels, test_preds, zero_division="warn")
+    test_f1 = f1_score(test_labels, test_preds, zero_division="warn")
 
     # Measure inference latency
     latency_start = time.time()
     _ = model.predict(test_texts[:100])
     inference_latency = (time.time() - latency_start) / len(test_texts[:100])
 
+    active_run = mlflow.active_run()
     metrics = {
         "model": f"{model_type}_{config_name}",
         "model_name": model_config["model_name"],
-        "run_id": mlflow.active_run().info.run_id if mlflow.active_run() else None,
+        "run_id": active_run.info.run_id if active_run else None,
         "train_accuracy": None,  # Not directly available from trainer
         "val_accuracy": None,
         "test_accuracy": test_accuracy,
@@ -125,7 +126,7 @@ def train_and_evaluate_transformer(
     from sklearn.metrics import classification_report
 
     print("\nClassification Report:")
-    print(classification_report(test_labels, test_preds, zero_division=0))
+    print(classification_report(test_labels, test_preds, zero_division="warn"))
 
     # Save model to models directory
     model_dir = f"../models/transformers/{model_type}_{config_name}"

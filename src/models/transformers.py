@@ -24,7 +24,7 @@ from transformers import (
 )
 import numpy as np
 import mlflow
-import mlflow.transformers
+import mlflow.transformers  # type: ignore
 from typing import Dict, Any, Optional, Union, List
 
 

@@ -11,7 +11,7 @@ import xgboost as xgb
 import numpy as np
 import joblib
 import mlflow
-import mlflow.sklearn
+import mlflow.sklearn as mlflow_sklearn  # type: ignore
 from typing import Optional, Any
 
 
@@ -40,10 +40,12 @@ class LogisticRegressionModel:
 
     def predict(self, X):
         """Make predictions."""
+        assert self.model is not None
         return self.model.predict(X)
 
     def predict_proba(self, X):
         """Get prediction probabilities."""
+        assert self.model is not None
         return self.model.predict_proba(X)
 
     def log_to_mlflow(
@@ -58,14 +60,14 @@ class LogisticRegressionModel:
                 mlflow.log_param(key, value)
 
             # Log model
-            mlflow.sklearn.log_model(
-                self.model,
-                "model",
-                input_example=X_test[:1] if X_test is not None else None,
-            )
+            if X_test is not None:
+                mlflow_sklearn.log_model(self.model, "model", input_example=X_test[:1])
+            else:
+                mlflow_sklearn.log_model(self.model, "model")
 
             # Log evaluation metrics if test data provided
             if X_test is not None and y_test is not None:
+                assert self.model is not None
                 from sklearn.metrics import (
                     accuracy_score,
                     precision_score,
@@ -76,18 +78,18 @@ class LogisticRegressionModel:
                 y_pred = self.predict(X_test)
                 y_pred_proba = (
                     self.predict_proba(X_test)[:, 1]
-                    if self.model.classes_.shape[0] == 2
+                    if len(self.model.classes_) == 2
                     else None
                 )
 
                 mlflow.log_metric("accuracy", accuracy_score(y_test, y_pred))
                 mlflow.log_metric(
-                    "precision", precision_score(y_test, y_pred, zero_division=0)
+                    "precision", precision_score(y_test, y_pred, zero_division="warn")
                 )
                 mlflow.log_metric(
-                    "recall", recall_score(y_test, y_pred, zero_division=0)
+                    "recall", recall_score(y_test, y_pred, zero_division="warn")
                 )
-                mlflow.log_metric("f1", f1_score(y_test, y_pred, zero_division=0))
+                mlflow.log_metric("f1", f1_score(y_test, y_pred, zero_division="warn"))
 
             # Log tags
             mlflow.set_tag("model_type", "logistic_regression")
@@ -132,10 +134,12 @@ class SVMModel:
 
     def predict(self, X):
         """Make predictions."""
+        assert self.model is not None
         return self.model.predict(X)
 
     def predict_proba(self, X):
         """Get prediction probabilities."""
+        assert self.model is not None
         return self.model.predict_proba(X)
 
     def log_to_mlflow(self, experiment_name, run_name="svm", X_test=None, y_test=None):
@@ -147,14 +151,14 @@ class SVMModel:
                 mlflow.log_param(key, value)
 
             # Log model
-            mlflow.sklearn.log_model(
-                self.model,
-                "model",
-                input_example=X_test[:1] if X_test is not None else None,
-            )
+            if X_test is not None:
+                mlflow_sklearn.log_model(self.model, "model", input_example=X_test[:1])
+            else:
+                mlflow_sklearn.log_model(self.model, "model")
 
             # Log evaluation metrics if test data provided
             if X_test is not None and y_test is not None:
+                assert self.model is not None
                 from sklearn.metrics import (
                     accuracy_score,
                     precision_score,
@@ -166,12 +170,12 @@ class SVMModel:
 
                 mlflow.log_metric("accuracy", accuracy_score(y_test, y_pred))
                 mlflow.log_metric(
-                    "precision", precision_score(y_test, y_pred, zero_division=0)
+                    "precision", precision_score(y_test, y_pred, zero_division="warn")
                 )
                 mlflow.log_metric(
-                    "recall", recall_score(y_test, y_pred, zero_division=0)
+                    "recall", recall_score(y_test, y_pred, zero_division="warn")
                 )
-                mlflow.log_metric("f1", f1_score(y_test, y_pred, zero_division=0))
+                mlflow.log_metric("f1", f1_score(y_test, y_pred, zero_division="warn"))
 
             mlflow.set_tag("model_type", "svm")
             mlflow.set_tag("framework", "sklearn")
@@ -214,10 +218,12 @@ class RandomForestModel:
 
     def predict(self, X):
         """Make predictions."""
+        assert self.model is not None
         return self.model.predict(X)
 
     def predict_proba(self, X):
         """Get prediction probabilities."""
+        assert self.model is not None
         return self.model.predict_proba(X)
 
     def log_to_mlflow(
@@ -231,14 +237,14 @@ class RandomForestModel:
                 mlflow.log_param(key, value)
 
             # Log model
-            mlflow.sklearn.log_model(
-                self.model,
-                "model",
-                input_example=X_test[:1] if X_test is not None else None,
-            )
+            if X_test is not None:
+                mlflow_sklearn.log_model(self.model, "model", input_example=X_test[:1])
+            else:
+                mlflow_sklearn.log_model(self.model, "model")
 
             # Log evaluation metrics if test data provided
             if X_test is not None and y_test is not None:
+                assert self.model is not None
                 from sklearn.metrics import (
                     accuracy_score,
                     precision_score,
@@ -249,18 +255,18 @@ class RandomForestModel:
                 y_pred = self.predict(X_test)
                 y_pred_proba = (
                     self.predict_proba(X_test)[:, 1]
-                    if self.model.classes_.shape[0] == 2
+                    if len(self.model.classes_) == 2
                     else None
                 )
 
                 mlflow.log_metric("accuracy", accuracy_score(y_test, y_pred))
                 mlflow.log_metric(
-                    "precision", precision_score(y_test, y_pred, zero_division=0)
+                    "precision", precision_score(y_test, y_pred, zero_division="warn")
                 )
                 mlflow.log_metric(
-                    "recall", recall_score(y_test, y_pred, zero_division=0)
+                    "recall", recall_score(y_test, y_pred, zero_division="warn")
                 )
-                mlflow.log_metric("f1", f1_score(y_test, y_pred, zero_division=0))
+                mlflow.log_metric("f1", f1_score(y_test, y_pred, zero_division="warn"))
 
             mlflow.set_tag("model_type", "random_forest")
             mlflow.set_tag("framework", "sklearn")
@@ -312,10 +318,12 @@ class XGBoostModel:
 
     def predict(self, X):
         """Make predictions."""
+        assert self.model is not None
         return self.model.predict(X)
 
     def predict_proba(self, X):
         """Get prediction probabilities."""
+        assert self.model is not None
         return self.model.predict_proba(X)
 
     def log_to_mlflow(
@@ -329,14 +337,14 @@ class XGBoostModel:
                 mlflow.log_param(key, value)
 
             # Log model
-            mlflow.sklearn.log_model(
-                self.model,
-                "model",
-                input_example=X_test[:1] if X_test is not None else None,
-            )
+            if X_test is not None:
+                mlflow_sklearn.log_model(self.model, "model", input_example=X_test[:1])
+            else:
+                mlflow_sklearn.log_model(self.model, "model")
 
             # Log evaluation metrics if test data provided
             if X_test is not None and y_test is not None:
+                assert self.model is not None
                 from sklearn.metrics import (
                     accuracy_score,
                     precision_score,
@@ -347,18 +355,18 @@ class XGBoostModel:
                 y_pred = self.predict(X_test)
                 y_pred_proba = (
                     self.predict_proba(X_test)[:, 1]
-                    if self.model.classes_.shape[0] == 2
+                    if len(self.model.classes_) == 2
                     else None
                 )
 
                 mlflow.log_metric("accuracy", accuracy_score(y_test, y_pred))
                 mlflow.log_metric(
-                    "precision", precision_score(y_test, y_pred, zero_division=0)
+                    "precision", precision_score(y_test, y_pred, zero_division="warn")
                 )
                 mlflow.log_metric(
-                    "recall", recall_score(y_test, y_pred, zero_division=0)
+                    "recall", recall_score(y_test, y_pred, zero_division="warn")
                 )
-                mlflow.log_metric("f1", f1_score(y_test, y_pred, zero_division=0))
+                mlflow.log_metric("f1", f1_score(y_test, y_pred, zero_division="warn"))
 
             mlflow.set_tag("model_type", "xgboost")
             mlflow.set_tag("framework", "xgboost")
