@@ -523,7 +523,7 @@ class TransformerModel:
                     device=0 if self.device.type == "cuda" else -1,
                 )
 
-                 mlflow.transformers.log_model(  # type: ignore
+                mlflow.transformers.log_model(  # type: ignore
                     transformers_model={
                         "model": self.model,
                         "tokenizer": self.tokenizer,
@@ -531,7 +531,7 @@ class TransformerModel:
                     artifact_path="model",
                     task="text-classification",
                     input_example="Sample text for classification",
-                     signature=mlflow.models.signature.infer_signature(  # type: ignore
+                    signature=mlflow.models.signature.infer_signature(  # type: ignore
                         ["input text"], [{"label": "positive", "score": 0.9}]
                     ),
                 )
