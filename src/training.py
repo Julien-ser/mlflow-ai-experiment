@@ -23,9 +23,9 @@ try:
     TORCH_AVAILABLE = True
 except ImportError:
     TORCH_AVAILABLE = False
-    torch = None  # type: Any
-    DataLoader = None  # type: Any
-    optim = None  # type: Any
+    torch: Any = None
+    DataLoader: Any = None
+    optim: Any = None
 
 # Optional TensorFlow import
 try:
