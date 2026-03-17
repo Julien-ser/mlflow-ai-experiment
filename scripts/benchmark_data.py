@@ -170,7 +170,7 @@ def benchmark_classical_preprocessing(
                     "samples_processed": total_samples,
                     "throughput_samples_per_second": round(throughput, 2),
                     "memory_delta_mb": round(total_memory, 2),
-                    "feature_matrix_shape": str(X_train.shape),
+                    "feature_matrix_shape": str(X_train.shape),  # type: ignore
                 }
             )
 
@@ -178,7 +178,7 @@ def benchmark_classical_preprocessing(
             print(f"  Total preprocessing time: {total_time:.4f}s")
             print(f"  Throughput: {throughput:.2f} samples/sec")
             print(f"  Memory delta: {total_memory:.2f} MB")
-            print(f"  Feature matrix shape: {X_train.shape}")
+            print(f"  Feature matrix shape: {X_train.shape}")  # type: ignore
 
     return pd.DataFrame(results)
 
@@ -318,37 +318,45 @@ def main():
         # Log data loading metrics
         for _, row in data_loading_results.iterrows():
             mlflow.log_metric(
-                f"data_loading_time_batch_{row['batch_size']}", row["load_time_seconds"]
+                f"data_loading_time_batch_{row['batch_size']}",
+                float(row["load_time_seconds"]),
             )
             mlflow.log_metric(
                 f"data_loading_throughput_batch_{row['batch_size']}",
-                row["throughput_samples_per_second"],
+                float(row["throughput_samples_per_second"]),
             )
             mlflow.log_metric(
-                f"data_loading_memory_batch_{row['batch_size']}", row["memory_delta_mb"]
+                f"data_loading_memory_batch_{row['batch_size']}",
+                float(row["memory_delta_mb"]),
             )
 
         # Log classical preprocessing metrics
         for _, row in classical_results.iterrows():
-            key = f"classical_batch{row['batch_size']}_features{row['max_features']}"
-            mlflow.log_metric(f"classical_time_{key}", row["total_time_seconds"])
+            key = f"classical_batch{int(row['batch_size'])}_features{int(row['max_features'])}"
+            mlflow.log_metric(f"classical_time_{key}", float(row["total_time_seconds"]))
             mlflow.log_metric(
-                f"classical_throughput_{key}", row["throughput_samples_per_second"]
+                f"classical_throughput_{key}",
+                float(row["throughput_samples_per_second"]),
             )
-            mlflow.log_metric(f"classical_memory_{key}", row["memory_delta_mb"])
+            mlflow.log_metric(f"classical_memory_{key}", float(row["memory_delta_mb"]))
 
         # Log transformer preprocessing metrics
         for _, row in transformer_results.iterrows():
-            if pd.isna(row["tokenization_time_seconds"]):
+            tokenization_time = row["tokenization_time_seconds"]
+            # Check if tokenization_time is NaN or None
+            if tokenization_time is None or (
+                isinstance(tokenization_time, float) and pd.isna(tokenization_time)
+            ):
                 continue
-            key = f"transformer_{row['model_name']}_batch{row['batch_size']}"
+            key = f"transformer_{row['model_name']}_batch{int(row['batch_size'])}"
+            mlflow.log_metric(f"tokenization_time_{key}", float(tokenization_time))
             mlflow.log_metric(
-                f"tokenization_time_{key}", row["tokenization_time_seconds"]
+                f"tokenization_throughput_{key}",
+                float(row["throughput_samples_per_second"]),
             )
             mlflow.log_metric(
-                f"tokenization_throughput_{key}", row["throughput_samples_per_second"]
+                f"tokenization_memory_{key}", float(row["memory_delta_mb"])
             )
-            mlflow.log_metric(f"tokenization_memory_{key}", row["memory_delta_mb"])
 
         # Save results as CSV artifacts
         data_loading_results.to_csv("data_loading_benchmark.csv", index=False)
@@ -363,7 +371,11 @@ def main():
 
         print("\nBenchmark complete!")
         print(f"MLFlow experiment: {experiment_name}")
-        print(f"Run ID: {mlflow.active_run().info.run_id}")
+        active_run = mlflow.active_run()
+        if active_run:
+            print(f"Run ID: {active_run.info.run_id}")
+        else:
+            print("Run ID: N/A (no active run)")
 
         # Print summary
         print("\n" + "=" * 80)
