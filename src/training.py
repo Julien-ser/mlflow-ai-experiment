@@ -23,9 +23,9 @@ try:
     TORCH_AVAILABLE = True
 except ImportError:
     TORCH_AVAILABLE = False
-     torch: Any = None  # type: ignore
-     DataLoader: Any = None  # type: ignore
-     optim: Any = None  # type: ignore
+    torch: Any = None  # type: ignore
+    DataLoader: Any = None  # type: ignore
+    optim: Any = None  # type: ignore
 
 # Optional TensorFlow import
 try:
@@ -68,8 +68,10 @@ class Trainer:
             assert torch is not None
             self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model: Optional[Any] = None
-        self.optimizer = None
-        self.scaler = None  # Initialized lazily in _train_transformer if needed
+        self.optimizer: Optional[Any] = None
+        self.scaler: Optional[Any] = (
+            None  # Initialized lazily in _train_transformer if needed
+        )
         self.early_stopping_counter = 0
         self.checkpoint_path = Path(config.get("checkpoint_dir", "checkpoints"))
         self.checkpoint_path.mkdir(parents=True, exist_ok=True)
@@ -277,8 +279,8 @@ class Trainer:
             if valid_loader is not None:
                 self.model.eval()
                 val_loss = 0.0
-                all_preds = []
-                all_labels = []
+                all_preds: list[Any] = []
+                all_labels: list[Any] = []
                 with torch.no_grad():
                     for batch in valid_loader:  # type: ignore
                         batch = {k: v.to(self.device) for k, v in batch.items()}
@@ -391,8 +393,8 @@ class Trainer:
                     batch_size=self.config.get("batch_size", 32),
                     shuffle=False,
                 )
-            all_preds = []
-            all_labels = []
+            all_preds: list[Any] = []
+            all_labels: list[Any] = []
             with torch.no_grad():
                 for batch in loader:  # type: ignore
                     batch = {k: v.to(self.device) for k, v in batch.items()}
