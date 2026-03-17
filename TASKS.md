@@ -8,7 +8,7 @@
   - Deliverable: `mlruns/` directory with tracking configured, `setup_mlflow.py` script, and `config.yaml` for experiment parameters
 - [x] Create development environment: Create `requirements.txt` with core dependencies (mlflow, transformers, datasets, torch/tensorflow, scikit-learn, pandas, numpy) and set up virtual environment
   - Deliverable: `requirements.txt` file, `environment.yml` (conda) or `pyproject.toml`, and verified working environment with all packages installed
-- [ ] Establish project structure and baseline: Create organized directory layout (`src/`, `data/`, `models/`, `experiments/`, ` notebooks/`) and implement a simple baseline model (e.g., TF-IDF + Logistic Regression)
+- [x] Establish project structure and baseline: Create organized directory layout (`src/`, `data/`, `models/`, `experiments/`, ` notebooks/`) and implement a simple baseline model (e.g., TF-IDF + Logistic Regression)
   - Deliverable: Complete folder structure with `src/baseline.py`, baseline training script that logs to MLFlow, and initial baseline metrics documented
 
 ## Phase 2: Data Management & Preprocessing

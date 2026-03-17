@@ -89,12 +89,25 @@ mlflow ui
 Then open http://localhost:5000 in your browser.
 
 ### Running Experiments
-```bash
-# Train baseline model
-python src/train.py --model logistic_regression --config config/baseline.yaml
 
-# Train transformer model
-python src/train.py --model bert --config config/bert.yaml
+#### Baseline Model (TF-IDF + Logistic Regression)
+```bash
+python scripts/run_baseline.py
+```
+
+#### Classical ML Models
+```bash
+# Train baseline model using classical pipeline
+python src/train.py --model logistic_regression --config config.yaml
+
+# Train other classical models
+python src/train.py --model svm --config config.yaml
+python src/train.py --model random_forest --config config.yaml
+```
+
+#### Transformer Models
+```bash
+python src/train.py --model bert --config config.yaml
 ```
 
 ### Evaluating Models
@@ -138,7 +151,10 @@ All experiments are automatically tracked in MLFlow with:
   - `requirements.txt` with all core dependencies
   - `environment.yml` for Conda users
   - `verify_environment.py` script for validation
-- [ ] Baseline model implementation
+- [x] Baseline model implementation
+  - `src/baseline.py` with TF-IDF + Logistic Regression
+  - `scripts/run_baseline.py` for training with MLFlow logging
+  - Project structure complete with `src/`, `data/`, `models/`, `experiments/`, `notebooks/`
 
 See [TASKS.md](TASKS.md) for full task list.
 

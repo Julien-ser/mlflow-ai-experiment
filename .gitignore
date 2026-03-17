@@ -1,1 +1,35 @@
+# Environment and secrets
 .env
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.pytest_cache/
+.coverage
+.ruff_cache/
+.mypy_cache/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Experiment logs (runtime generated)
+logs/*.log
+logs/*.json
+
+# Data (raw and processed raw sources - keep structure but not content)
+# data/raw/*
+# data/external/*
+# (Uncomment if you want to ignore actual data files, keep directory structure)
