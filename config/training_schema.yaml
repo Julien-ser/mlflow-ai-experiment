@@ -1,0 +1,190 @@
+# Unified Training Pipeline Configuration Schema
+# This file documents the structure and allowed values for config/training.yaml
+
+schema_version: "1.0"
+
+description: |
+  Configuration for the unified training pipeline supporting classical ML and transformer models
+  with PyTorch backend, MLflow tracking, checkpointing, early stopping, and mixed precision.
+
+required_sections:
+  - data
+  - model_type
+  - model
+  - training
+
+# Data Configuration
+data:
+  type: object
+  required: true
+  properties:
+    dataset_name:
+      type: string
+      description: "Name of the HuggingFace dataset (e.g., 'imdb')"
+      example: "imdb"
+    train_split:
+      type: string
+      description: "Dataset split to use for training"
+      example: "train"
+    test_split:
+      type: string
+      description: "Dataset split to use for testing"
+      example: "test"
+    validation_split_ratio:
+      type: number
+      description: "Fraction of training data to use for validation (0.0-1.0)"
+      minimum: 0.0
+      maximum: 1.0
+      example: 0.1
+
+# Model Type
+model_type:
+  type: string
+  enum: ["classical", "transformer"]
+  description: "Type of model to train"
+  default: "transformer"
+
+# Backend
+backend:
+  type: string
+  enum: ["pytorch", "tensorflow"]
+  description: "Deep learning backend (currently only PyTorch is fully supported)"
+  default: "pytorch"
+
+# Model Configuration
+model:
+  type: object
+  required: true
+  properties:
+    # For classical models
+    name:
+      type: string
+      enum: ["logistic_regression", "svm", "random_forest", "xgboost"]
+      description: "Classical model type (only when model_type=classical)"
+      example: "logistic_regression"
+    params:
+      type: object
+      description: "Model-specific hyperparameters for classical models"
+      example:
+        C: 1.0
+        max_iter: 1000
+
+    # For transformer models
+    model_name:
+      type: string
+      description: "HuggingFace model identifier (only when model_type=transformer)"
+      example: "bert-base-uncased"
+    num_labels:
+      type: integer
+      description: "Number of output classes for classification"
+      default: 2
+      example: 2
+    max_seq_length:
+      type: integer
+      description: "Maximum sequence length for tokenization"
+      default: 512
+      example: 512
+
+# Training Hyperparameters
+num_epochs:
+  type: integer
+  description: "Number of training epochs"
+  default: 3
+  minimum: 1
+
+batch_size:
+  type: integer
+  description: "Batch size for training"
+  default: 32
+  minimum: 1
+
+learning_rate:
+  type: number
+  description: "Learning rate for optimizer"
+  default: 1e-4
+  example: 2e-5
+
+optimizer:
+  type: object
+  properties:
+    name:
+      type: string
+      enum: ["adam", "adamw", "sgd"]
+      description: "Optimizer type"
+      default: "adamw"
+    lr:
+      type: number
+      description: "Learning rate (overrides top-level learning_rate if specified)"
+      # Not setting default; falls back to top-level learning_rate
+
+mixed_precision:
+  type: boolean
+  description: "Enable mixed precision training (PyTorch only)"
+  default: false
+
+early_stopping_patience:
+  type: integer
+  description: "Number of epochs to wait for improvement before early stopping"
+  default: 5
+  minimum: 1
+
+# Data Loading
+num_workers:
+  type: integer
+  description: "Number of DataLoader workers"
+  default: 0
+  minimum: 0
+
+pin_memory:
+  type: boolean
+  description: "Pin memory for GPU transfers (automatically true if CUDA available)"
+  default: true
+
+# Checkpointing
+checkpoint_dir:
+  type: string
+  description: "Directory to save model checkpoints"
+  default: "checkpoints"
+
+# MLflow Tracking
+mlflow_tracking:
+  type: boolean
+  description: "Enable MLflow experiment tracking"
+  default: true
+
+mlflow_uri:
+  type: string
+  description: "MLflow tracking URI"
+  default: "mlruns"
+
+mlflow_experiment_name:
+  type: string
+  description: "MLflow experiment name"
+  default: "unified_training"
+
+# Reproducibility
+random_seed:
+  type: integer
+  description: "Random seed for reproducibility"
+  default: 42
+
+# Preprocessing (for classical models only)
+preprocessing:
+  type: object
+  properties:
+    max_features:
+      type: integer
+      description: "Maximum number of TF-IDF features"
+      default: 5000
+    ngram_range:
+      type: array
+      description: "N-gram range as [min_n, max_n]"
+      items:
+        type: integer
+      minItems: 2
+      maxItems: 2
+      default: [1, 2]
+    min_df:
+      type: integer
+      description: "Minimum document frequency for TF-IDF"
+      default: 5

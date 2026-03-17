@@ -1,0 +1,59 @@
+# Unified Training Pipeline Configuration
+# This configuration supports both classical ML and transformer models
+# with PyTorch backend (TensorFlow support planned for future)
+
+# Data configuration
+data:
+  dataset_name: "imdb"
+  train_split: "train"
+  test_split: "test"
+  validation_split_ratio: 0.1
+
+# MLflow tracking configuration
+mlflow_tracking: true
+mlflow_uri: "mlruns"
+mlflow_experiment_name: "unified_training"
+
+# Training mode: "classical" or "transformer"
+model_type: "transformer"
+
+# Backend: "pytorch" (TensorFlow support planned)
+backend: "pytorch"
+
+# Model configuration
+model:
+  # For classical models:
+  #   name: "logistic_regression" | "svm" | "random_forest" | "xgboost"
+  #   params: { model-specific hyperparameters }
+  #
+  # For transformer models:
+  #   model_name: HuggingFace model identifier (e.g., "bert-base-uncased")
+  #   num_labels: number of classification classes
+  #   max_seq_length: maximum sequence length (optional, default 512)
+  model_name: "bert-base-uncased"
+  num_labels: 2
+  max_seq_length: 512
+
+# Training hyperparameters
+num_epochs: 3
+batch_size: 16
+learning_rate: 2e-5
+optimizer:
+  name: "adamw"  # "adam", "adamw", "sgd"
+  # lr: will be overridden by top-level learning_rate if not specified
+
+# Mixed precision training (PyTorch only)
+mixed_precision: true
+
+# Early stopping
+early_stopping_patience: 5
+
+# Data loading
+num_workers: 0
+pin_memory: true  # Automatically set to true if CUDA available
+
+# Checkpointing
+checkpoint_dir: "checkpoints"
+
+# Random seed for reproducibility
+random_seed: 42
