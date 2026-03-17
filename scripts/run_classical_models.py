@@ -10,9 +10,9 @@ import pandas as pd
 # Add src to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
-from data_loader import load_imdb_dataset
-from preprocessing import preprocess_dataset, get_tfidf_features
-from models.classical import (
+from src.data_loader import load_imdb_dataset  # type: ignore
+from src.preprocessing import preprocess_dataset, get_tfidf_features  # type: ignore
+from src.models.classical import (  # type: ignore
     LogisticRegressionModel,
     SVMModel,
     RandomForestModel,
@@ -74,16 +74,16 @@ def train_and_evaluate_model(
     from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 
     metrics["test_accuracy"] = accuracy_score(y_test, y_pred)
-    metrics["test_precision"] = precision_score(y_test, y_pred, zero_division=0)
-    metrics["test_recall"] = recall_score(y_test, y_pred, zero_division=0)
-    metrics["test_f1"] = f1_score(y_test, y_pred, zero_division=0)
+    metrics["test_precision"] = precision_score(y_test, y_pred, zero_division="warn")
+    metrics["test_recall"] = recall_score(y_test, y_pred, zero_division="warn")
+    metrics["test_f1"] = f1_score(y_test, y_pred, zero_division="warn")
 
     print(f"Test accuracy: {metrics['test_accuracy']:.4f}")
     print(f"Test F1 score: {metrics['test_f1']:.4f}")
 
     # Print classification report
     print("\nClassification Report:")
-    print(classification_report(y_test, y_pred, zero_division=0))
+    print(classification_report(y_test, y_pred, zero_division="warn"))
 
     # Save model to models directory
     model_dir = f"../models/classical/{model_name}"
@@ -222,7 +222,7 @@ def main():
     with mlflow.start_run(run_name="comparison_summary") as run:
         for model_name, row in comparison_df.iterrows():
             for col in test_metrics_cols:
-                mlflow.log_metric(f"{model_name}_{col}", row[col])
+                mlflow.log_metric(f"{model_name}_{col}", float(row[col]))
         mlflow.log_artifact(csv_path)
         print(f"\nComparison logged to MLflow run: {run.info.run_id}")
 

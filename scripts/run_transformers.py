@@ -12,11 +12,8 @@ import torch
 # Add src to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
-from data_loader import load_imdb_dataset  # type: ignore
-from models.transformers import (
-    TransformerModel,
-    create_transformer_model,
-)  # type: ignore
+from src.data_loader import load_imdb_dataset  # type: ignore
+from src.models.transformers import TransformerModel, create_transformer_model  # type: ignore
 import mlflow
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
 import numpy as np
@@ -138,12 +135,12 @@ def train_and_evaluate_transformer(
     # Log test metrics and artifacts in a dedicated MLflow run (training was logged by model.train)
     with mlflow.start_run(run_name=f"{model_type}_{config_name}") as run:
         # Log test metrics
-        mlflow.log_metric("test_accuracy", test_accuracy)
-        mlflow.log_metric("test_precision", test_precision)
-        mlflow.log_metric("test_recall", test_recall)
-        mlflow.log_metric("test_f1", test_f1)
-        mlflow.log_metric("train_time_seconds", train_time)
-        mlflow.log_metric("inference_latency_ms", inference_latency * 1000)
+        mlflow.log_metric("test_accuracy", float(test_accuracy))
+        mlflow.log_metric("test_precision", float(test_precision))
+        mlflow.log_metric("test_recall", float(test_recall))
+        mlflow.log_metric("test_f1", float(test_f1))
+        mlflow.log_metric("train_time_seconds", float(train_time))
+        mlflow.log_metric("inference_latency_ms", float(inference_latency * 1000))
 
         # Log hyperparameters
         for key in [
@@ -236,6 +233,7 @@ def main():
     print("TRANSFORMER MODELS COMPARISON SUMMARY")
     print("=" * 80)
 
+    comparison_df = None
     if all_metrics:
         comparison_df = pd.DataFrame(all_metrics)
         comparison_df = comparison_df.set_index("model")
@@ -263,9 +261,10 @@ def main():
 
         # Log comparison to MLflow
         with mlflow.start_run(run_name="comparison_summary") as run:
-            for model_name, row in comparison_df.iterrows():
+            for model_name, row in comparison_df.iterrows():  # type: ignore
                 for col in test_metrics_cols:
-                    mlflow.log_metric(f"{model_name}_{col}", row[col])
+                    value = float(row[col])
+                    mlflow.log_metric(f"{model_name}_{col}", value)  # type: ignore
             mlflow.log_artifact(csv_path)
             print(f"\nComparison logged to MLflow run: {run.info.run_id}")
     else:
@@ -275,7 +274,7 @@ def main():
     print("TRANSFORMER MODELS TRAINING COMPLETE!")
     print("=" * 80)
 
-    return comparison_df if all_metrics else None
+    return comparison_df
 
 
 if __name__ == "__main__":

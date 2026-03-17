@@ -3,6 +3,7 @@ Transformer model implementations for text classification with unified interface
 
 Supports BERT, RoBERTa, DeBERTa, XLNet with custom classification heads.
 """
+# mypy: ignore-errors
 
 import torch
 import torch.nn as nn
@@ -26,6 +27,14 @@ import numpy as np
 import mlflow
 import mlflow.transformers  # type: ignore
 from typing import Dict, Any, Optional, Union, List
+
+# TensorFlow availability
+try:
+    import tensorflow as tf  # noqa: F401
+
+    TF_AVAILABLE = True
+except ImportError:
+    TF_AVAILABLE = False
 
 
 class TransformerModel:
