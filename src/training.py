@@ -4,33 +4,33 @@ Supports both PyTorch and TensorFlow backends, with features like logging,
 checkpointing, early stopping, mixed precision, and comprehensive experiment tracking.
 """
 
+from __future__ import annotations
+
 import os
 import time
 import json
 import logging
 from pathlib import Path
-from typing import Dict, Any, Optional, List, Tuple
+from typing import Dict, Any, Optional, List, Tuple, TYPE_CHECKING
 import numpy as np
 import mlflow
 import joblib
 
-# PyTorch imports
+if TYPE_CHECKING:
+    from torch.utils.data import DataLoader, Dataset
+    import torch
+    import torch.optim as optim
+
+# Runtime imports (optional PyTorch)
 try:
     import torch
     from torch.utils.data import DataLoader, Dataset
-    from torch.cuda.amp import GradScaler, autocast
     import torch.optim as optim
 
     TORCH_AVAILABLE = True
 except ImportError:
     TORCH_AVAILABLE = False
-
-    class Dataset:
-        pass
-
-    class DataLoader:
-        pass
-
+    torch = None  # type: ignore
 
 # Optional TensorFlow import
 try:
@@ -47,7 +47,7 @@ from .models.classical import (
     XGBoostModel,
 )
 from .models.transformers import TransformerModel
-from .evaluation import evaluate_model
+from .evaluation import compute_metrics
 
 logger = logging.getLogger(__name__)
 
@@ -67,20 +67,14 @@ class Trainer:
         self.config = config
         self.model_type = model_type
         self.backend = backend
-        self.device = (
-            torch.device("cuda" if torch.cuda.is_available() else "cpu")
-            if TORCH_AVAILABLE
-            else None
-        )
+        # Device setup
+        self.device = None
+        if TORCH_AVAILABLE:
+            assert torch is not None
+            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.model = None
         self.optimizer = None
-        self.scaler = (
-            GradScaler()
-            if backend == "pytorch"
-            and TORCH_AVAILABLE
-            and config.get("mixed_precision", False)
-            else None
-        )
+        self.scaler = None  # Initialized lazily in _train_transformer if needed
         self.early_stopping_counter = 0
         self.checkpoint_path = Path(config.get("checkpoint_dir", "checkpoints"))
         self.checkpoint_path.mkdir(parents=True, exist_ok=True)
@@ -110,13 +104,15 @@ class Trainer:
             self.model = model_cls[model_config["name"]](model_config["params"])
             self.optimizer = None
         elif self.model_type == "transformer":
-            self.model = TransformerModel(
+            if not TORCH_AVAILABLE:
+                raise RuntimeError("Transformer training requires PyTorch")
+            transformer = TransformerModel(
                 model_name=model_config["model_name"],
                 num_labels=model_config.get("num_labels", 2),
                 config=model_config,
             )
-            if self.backend == "pytorch" and TORCH_AVAILABLE:
-                self.model.to(self.device)
+            transformer.build_model()
+            self.model = transformer.model
         else:
             raise ValueError(f"Unsupported model type: {self.model_type}")
 
@@ -131,6 +127,10 @@ class Trainer:
         if self.backend == "pytorch":
             if not TORCH_AVAILABLE:
                 raise RuntimeError("PyTorch is not available")
+            assert self.model is not None, (
+                "Model must be initialized before preparing optimizer"
+            )
+            assert optim is not None
             if optimizer_name == "adam":
                 self.optimizer = optim.Adam(self.model.parameters(), lr=lr)
             elif optimizer_name == "adamw":
@@ -146,15 +146,17 @@ class Trainer:
 
     def _prepare_dataloaders(
         self,
-        train_dataset: Dataset,
-        valid_dataset: Optional[Dataset] = None,
-    ) -> Dict[str, DataLoader]:
+        train_dataset: Any,
+        valid_dataset: Optional[Any] = None,
+    ) -> Dict[str, Any]:
         """
         Prepare train and validation DataLoaders.
         """
+        assert DataLoader is not None, "DataLoader is not available"
+        assert self.device is not None, "Device not initialized"
         batch_size = self.config.get("batch_size", 32)
         num_workers = self.config.get("num_workers", 0)
-        pin_memory = self.device.type == "cuda" if self.device else False
+        pin_memory = self.device.type == "cuda"
 
         train_loader = DataLoader(
             train_dataset,
@@ -163,7 +165,7 @@ class Trainer:
             num_workers=num_workers,
             pin_memory=pin_memory,
         )
-        valid_loader: Optional[DataLoader] = None
+        valid_loader = None
         if valid_dataset is not None:
             valid_loader = DataLoader(
                 valid_dataset,
@@ -182,6 +184,7 @@ class Trainer:
         """
         Train a classical model.
         """
+        assert self.model is not None
         X_train, y_train = train_dataset
         logger.info("Training classical model...")
         start_time = time.time()
@@ -191,7 +194,7 @@ class Trainer:
 
         # Evaluate on training set
         y_pred_train = self.model.predict(X_train)
-        train_metrics = evaluate_model(y_train, y_pred_train)
+        train_metrics = compute_metrics(y_train, y_pred_train)
         train_metrics["training_time"] = training_duration
 
         # Evaluate on validation set if provided
@@ -199,7 +202,7 @@ class Trainer:
         if valid_dataset is not None:
             X_val, y_val = valid_dataset
             y_pred_val = self.model.predict(X_val)
-            val_metrics = evaluate_model(y_val, y_pred_val)
+            val_metrics = compute_metrics(y_val, y_pred_val)
             val_metrics["validation_time"] = time.time() - start_time
 
         # Log to MLflow
@@ -216,24 +219,36 @@ class Trainer:
 
     def _train_transformer(
         self,
-        train_dataset: Dataset,
-        valid_dataset: Optional[Dataset] = None,
+        train_dataset: Any,
+        valid_dataset: Optional[Any] = None,
     ) -> Dict[str, float]:
         """
         Train a transformer model using PyTorch.
         """
         if not TORCH_AVAILABLE:
             raise RuntimeError("PyTorch is not available for transformer training")
+        assert torch is not None
+        assert self.model is not None
+
+        # Initialize scaler for mixed precision if needed
+        if self.scaler is None and self.config.get("mixed_precision", False):
+            from torch.cuda.amp import GradScaler
+
+            self.scaler = GradScaler()
 
         # Prepare optimizer if not already
         if self.optimizer is None:
             optimizer_config = self.config.get("optimizer", {})
             self._prepare_optimizer(optimizer_config)
+        assert self.optimizer is not None
 
         # Prepare dataloaders
         loaders = self._prepare_dataloaders(train_dataset, valid_dataset)
         train_loader = loaders["train"]
         valid_loader = loaders["valid"]
+
+        # Import autocast for mixed precision
+        from torch.cuda.amp import autocast
 
         num_epochs = self.config.get("num_epochs", 3)
         best_val_metric = float("inf")
@@ -282,7 +297,7 @@ class Trainer:
                         all_preds.extend(preds.cpu().numpy())
                         all_labels.extend(batch["labels"].cpu().numpy())
                 avg_val_loss = val_loss / len(valid_loader)
-                val_metrics = evaluate_model(np.array(all_labels), np.array(all_preds))
+                val_metrics = compute_metrics(np.array(all_labels), np.array(all_preds))
                 val_metrics["val_loss"] = avg_val_loss
 
             epoch_time = time.time() - epoch_start
@@ -348,8 +363,6 @@ class Trainer:
                 )
             metrics = self._train_classical(train_dataset, valid_dataset)
         elif self.model_type == "transformer":
-            if not TORCH_AVAILABLE:
-                raise RuntimeError("Transformer training requires PyTorch")
             metrics = self._train_transformer(train_dataset, valid_dataset)
         else:
             raise ValueError(f"Unsupported model_type: {self.model_type}")
@@ -371,11 +384,12 @@ class Trainer:
                 )
             X_test, y_test = test_dataset
             y_pred = self.model.predict(X_test)
-            metrics = evaluate_model(y_test, y_pred)
+            metrics = compute_metrics(y_test, y_pred)
         elif self.model_type == "transformer":
-            self.model.eval()
             if not TORCH_AVAILABLE:
                 raise RuntimeError("Transformer evaluation requires PyTorch")
+            assert torch is not None
+            self.model.eval()
             if isinstance(test_dataset, DataLoader):
                 loader = test_dataset
             else:
@@ -394,7 +408,7 @@ class Trainer:
                     preds = torch.argmax(logits, dim=-1)
                     all_preds.extend(preds.cpu().numpy())
                     all_labels.extend(batch["labels"].cpu().numpy())
-            metrics = evaluate_model(np.array(all_labels), np.array(all_preds))
+            metrics = compute_metrics(np.array(all_labels), np.array(all_preds))
         else:
             raise ValueError(f"Unsupported model_type: {self.model_type}")
 
