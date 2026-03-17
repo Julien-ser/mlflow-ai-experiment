@@ -9,10 +9,15 @@ import torch.nn as nn
 from transformers import (
     AutoModel,
     AutoTokenizer,
+    AutoModelForSequenceClassification,
     BertForSequenceClassification,
     RobertaForSequenceClassification,
     DebertaForSequenceClassification,
     XLNetForSequenceClassification,
+    ElectraForSequenceClassification,
+    AlbertForSequenceClassification,
+    DistilBertForSequenceClassification,
+    GPT2ForSequenceClassification,
     Trainer,
     TrainingArguments,
     EarlyStoppingCallback,
@@ -36,6 +41,10 @@ class TransformerModel:
         "roberta": RobertaForSequenceClassification,
         "deberta": DebertaForSequenceClassification,
         "xlnet": XLNetForSequenceClassification,
+        "electra": ElectraForSequenceClassification,
+        "albert": AlbertForSequenceClassification,
+        "distilbert": DistilBertForSequenceClassification,
+        "gpt2": GPT2ForSequenceClassification,
     }
 
     def __init__(
@@ -94,13 +103,20 @@ class TransformerModel:
         model_name_lower = model_name.lower()
 
         # Check in order of specificity to avoid false matches
-        # (some names like 'roberta' contain 'bert')
         if "xlnet" in model_name_lower:
             return "xlnet"
         elif "deberta" in model_name_lower:
             return "deberta"
         elif "roberta" in model_name_lower:
             return "roberta"
+        elif "albert" in model_name_lower:
+            return "albert"
+        elif "electra" in model_name_lower:
+            return "electra"
+        elif "distilbert" in model_name_lower:
+            return "distilbert"
+        elif "gpt2" in model_name_lower or "gpt-" in model_name_lower:
+            return "gpt2"
         elif "bert" in model_name_lower:
             return "bert"
 
@@ -483,12 +499,45 @@ class XLNetModel(TransformerModel):
         super().__init__(**kwargs)
 
 
+class ELECTRAModel(TransformerModel):
+    """ELECTRA model wrapper."""
+
+    def __init__(self, **kwargs):
+        kwargs.setdefault("model_name", "google/electra-base-discriminator")
+        super().__init__(**kwargs)
+
+
+class ALBERTModel(TransformerModel):
+    """ALBERT model wrapper."""
+
+    def __init__(self, **kwargs):
+        kwargs.setdefault("model_name", "albert-base-v2")
+        super().__init__(**kwargs)
+
+
+class DistilBERTModel(TransformerModel):
+    """DistilBERT model wrapper."""
+
+    def __init__(self, **kwargs):
+        kwargs.setdefault("model_name", "distilbert-base-uncased")
+        super().__init__(**kwargs)
+
+
+class GPT2Model(TransformerModel):
+    """GPT-2 model wrapper."""
+
+    def __init__(self, **kwargs):
+        kwargs.setdefault("model_name", "gpt2")
+        super().__init__(**kwargs)
+
+
 def create_transformer_model(model_type: str, **kwargs) -> TransformerModel:
     """
     Factory function to create transformer model instances.
 
     Args:
-        model_type: Type of transformer model ('bert', 'roberta', 'deberta', 'xlnet')
+        model_type: Type of transformer model ('bert', 'roberta', 'deberta', 'xlnet',
+                    'electra', 'albert', 'distilbert', 'gpt2')
         **kwargs: Additional configuration parameters
 
     Returns:
@@ -504,6 +553,10 @@ def create_transformer_model(model_type: str, **kwargs) -> TransformerModel:
         "roberta": RoBERTaModel,
         "deberta": DeBERTaModel,
         "xlnet": XLNetModel,
+        "electra": ELECTRAModel,
+        "albert": ALBERTModel,
+        "distilbert": DistilBERTModel,
+        "gpt2": GPT2Model,
     }
 
     if model_type not in model_classes:
