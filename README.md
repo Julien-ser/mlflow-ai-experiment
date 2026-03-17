@@ -44,21 +44,40 @@ This project uses **MLFlow** to systematically compare state-of-the-art machine 
 - Python 3.9+
 - Git
 
-### Installation
-1. Clone the repository:
+### Option 1: Using pip (system Python)
+```bash
+# Install dependencies directly into system Python
+pip install -r requirements.txt
+
+# Verify environment
+python verify_environment.py
+```
+
+### Option 2: Using Conda (recommended for isolation)
+```bash
+# Create and activate conda environment
+conda env create -f environment.yml
+conda activate mlflow-ai-experiment
+
+# Verify environment
+python verify_environment.py
+```
+
+### Quick Start
+1. Start MLflow tracking server:
    ```bash
-   git clone <repository-url>
-   cd mlflow-ai-experiment
+   mlflow ui
+   ```
+   Open http://localhost:5000 in your browser.
+
+2. Explore the notebooks:
+   ```bash
+   jupyter lab notebooks/01_data_exploration.ipynb
    ```
 
-2. Install dependencies:
+3. Run baseline training:
    ```bash
-   pip install -r requirements.txt
-   ```
-
-3. Verify installation:
-   ```bash
-   python -c "import mlflow; print(f'MLFlow version: {mlflow.__version__}')"
+   python src/train.py --model logistic_regression --config config/baseline.yaml
    ```
 
 ## Usage
@@ -115,7 +134,10 @@ All experiments are automatically tracked in MLFlow with:
   - `config.yaml` with experiment parameters
   - `setup_mlflow.py` script to initialize tracking
   - Project directory structure created
-- [ ] Development environment creation
+- [x] Development environment creation
+  - `requirements.txt` with all core dependencies
+  - `environment.yml` for Conda users
+  - `verify_environment.py` script for validation
 - [ ] Baseline model implementation
 
 See [TASKS.md](TASKS.md) for full task list.

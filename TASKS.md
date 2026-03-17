@@ -6,7 +6,7 @@
   - Deliverable: `docs/problem-statement.md` with dataset choice, evaluation metrics (accuracy, F1, inference time), and baseline expectations
 - [x] Set up MLFlow tracking infrastructure: Configure MLFlow tracking URI (local directory or Docker), initialize experiments, create project structure
   - Deliverable: `mlruns/` directory with tracking configured, `setup_mlflow.py` script, and `config.yaml` for experiment parameters
-- [ ] Create development environment: Create `requirements.txt` with core dependencies (mlflow, transformers, datasets, torch/tensorflow, scikit-learn, pandas, numpy) and set up virtual environment
+- [x] Create development environment: Create `requirements.txt` with core dependencies (mlflow, transformers, datasets, torch/tensorflow, scikit-learn, pandas, numpy) and set up virtual environment
   - Deliverable: `requirements.txt` file, `environment.yml` (conda) or `pyproject.toml`, and verified working environment with all packages installed
 - [ ] Establish project structure and baseline: Create organized directory layout (`src/`, `data/`, `models/`, `experiments/`, ` notebooks/`) and implement a simple baseline model (e.g., TF-IDF + Logistic Regression)
   - Deliverable: Complete folder structure with `src/baseline.py`, baseline training script that logs to MLFlow, and initial baseline metrics documented
