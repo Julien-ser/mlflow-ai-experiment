@@ -149,7 +149,7 @@ class TestFactoryFunctions:
             ("gpt2", "gpt2"),
         ],
     )
-    def test_create_transformer_model_from_name(self, model_name, expected_type):
+    def test_create_transformer_model_from_name(self, model_type, model_name):
         """Test create_transformer_model_from_name factory."""
         model = create_transformer_model_from_name(model_name, num_labels=3)
         assert isinstance(
@@ -219,6 +219,7 @@ class TestModelIntegrity:
         assert encoding["input_ids"].shape[0] == 2
         assert encoding["input_ids"].shape[1] <= model.max_seq_length
 
+    @pytest.mark.slow
     def test_tokenize_data_with_labels(self):
         """Test tokenization with labels."""
         model = create_transformer_model("bert", num_labels=2)
