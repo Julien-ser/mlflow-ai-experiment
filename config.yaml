@@ -34,6 +34,7 @@ models:
     - "albert"
     - "deberta"
     - "xlnet"
+    - "gpt2"
 
 training:
   random_seed: 42
