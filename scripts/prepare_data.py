@@ -7,9 +7,12 @@ This downloads the dataset, creates CSV splits, and logs to MLFlow.
 import sys
 import os
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
+# Add project root to path for absolute imports
+project_root = os.path.dirname(os.path.dirname(__file__))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
-from data_loader import load_and_log_dataset
+from src.data_loader import load_and_log_dataset
 
 if __name__ == "__main__":
     print("Preparing IMDB dataset with MLFlow logging...")

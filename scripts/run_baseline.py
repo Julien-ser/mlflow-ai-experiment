@@ -5,12 +5,14 @@ Script to train and evaluate the baseline TF-IDF + Logistic Regression model.
 import sys
 import os
 
-# Add src to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
+# Add project root to path for absolute imports
+project_root = os.path.dirname(os.path.dirname(__file__))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
-from data_loader import load_imdb_dataset
-from preprocessing import preprocess_dataset
-from baseline import BaselineModel
+from src.data_loader import load_imdb_dataset
+from src.preprocessing import preprocess_dataset
+from src.baseline import BaselineModel
 import mlflow
 
 
