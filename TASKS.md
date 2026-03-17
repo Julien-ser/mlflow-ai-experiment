@@ -12,7 +12,7 @@
   - Deliverable: Complete folder structure with `src/baseline.py`, baseline training script that logs to MLFlow, and initial baseline metrics documented
 
 ## Phase 2: Data Management & Preprocessing
-- [ ] Download and prepare dataset: Download IMDB dataset using HuggingFace `datasets` library, perform initial exploration, and create standardized train/validation/test splits
+- [x] Download and prepare dataset: Download IMDB dataset using HuggingFace `datasets` library, perform initial exploration, and create standardized train/validation/test splits
   - Deliverable: `data/` folder with processed splits (`train.csv`, `validation.csv`, `test.csv`), `src/data_loader.py` with dataset handling, and data exploration notebook `notebooks/01_data_exploration.ipynb`
 - [ ] Implement text preprocessing pipeline: Create modular preprocessing functions for tokenization, padding, and cleaning; implement different tokenization strategies for classical ML vs. transformers
   - Deliverable: `src/preprocessing.py` with configurable pipelines, `src/tokenizers.py` for BERT/RoBERTa/DistilBERT tokenizers, and tests in `tests/test_preprocessing.py`
