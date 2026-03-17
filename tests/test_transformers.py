@@ -11,6 +11,10 @@ from src.models.transformers import (
     RoBERTaModel,
     DeBERTaModel,
     XLNetModel,
+    ELECTRAModel,
+    ALBERTModel,
+    DistilBERTModel,
+    GPT2Model,
     create_transformer_model,
     create_transformer_model_from_name,
 )
