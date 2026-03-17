@@ -7,7 +7,6 @@ from sklearn.linear_model import LogisticRegression  # type: ignore
 from sklearn.svm import LinearSVC  # type: ignore
 from sklearn.calibration import CalibratedClassifierCV  # type: ignore
 from sklearn.ensemble import RandomForestClassifier  # type: ignore
-from sklearn.model_selection import GridSearchCV  # type: ignore
 import xgboost as xgb
 import joblib  # type: ignore
 import mlflow
@@ -76,11 +75,6 @@ class LogisticRegressionModel:
                 )
 
                 y_pred = self.predict(X_test)
-                y_pred_proba = (
-                    self.predict_proba(X_test)[:, 1]  # type: ignore
-                    if len(self.model.classes_) == 2
-                    else None
-                )
 
                 mlflow.log_metric("accuracy", accuracy_score(y_test, y_pred))
                 mlflow.log_metric(
@@ -253,11 +247,6 @@ class RandomForestModel:
                 )
 
                 y_pred = self.predict(X_test)
-                y_pred_proba = (
-                    self.predict_proba(X_test)[:, 1]  # type: ignore
-                    if len(self.model.classes_) == 2
-                    else None
-                )
 
                 mlflow.log_metric("accuracy", accuracy_score(y_test, y_pred))
                 mlflow.log_metric(
@@ -353,11 +342,6 @@ class XGBoostModel:
                 )
 
                 y_pred = self.predict(X_test)
-                y_pred_proba = (
-                    self.predict_proba(X_test)[:, 1]  # type: ignore
-                    if len(self.model.classes_) == 2
-                    else None
-                )
 
                 mlflow.log_metric("accuracy", accuracy_score(y_test, y_pred))
                 mlflow.log_metric(
