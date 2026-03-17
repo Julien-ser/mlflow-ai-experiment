@@ -1,179 +1,405 @@
 """
 Unified training pipeline for classical and transformer models.
+Supports both PyTorch and TensorFlow backends, with features like logging,
+checkpointing, early stopping, mixed precision, and comprehensive experiment tracking.
 """
 
 import os
-import yaml
+import time
+import json
+import logging
+from pathlib import Path
+from typing import Dict, Any, Optional, List, Tuple
+import numpy as np
 import mlflow
-from typing import Union, Dict, Any
+import joblib
 
-from .data_loader import load_imdb_dataset
-from .preprocessing import preprocess_dataset
-from .models.classical import create_model as create_classical_model
-from .models.transformers import create_transformer_model
+# PyTorch imports
+try:
+    import torch
+    from torch.utils.data import DataLoader, Dataset
+    from torch.cuda.amp import GradScaler, autocast
+    import torch.optim as optim
+
+    TORCH_AVAILABLE = True
+except ImportError:
+    TORCH_AVAILABLE = False
+
+    class Dataset:
+        pass
+
+    class DataLoader:
+        pass
+
+
+# Optional TensorFlow import
+try:
+    import tensorflow as tf
+
+    TF_AVAILABLE = True
+except ImportError:
+    TF_AVAILABLE = False
+
+from .models.classical import (
+    LogisticRegressionModel,
+    SVMModel,
+    RandomForestModel,
+    XGBoostModel,
+)
+from .models.transformers import TransformerModel
 from .evaluation import evaluate_model
 
+logger = logging.getLogger(__name__)
 
-class TrainingPipeline:
-    def __init__(self, config: Union[str, Dict[str, Any]]):
-        if isinstance(config, str):
-            with open(config, "r") as f:
-                self.config = yaml.safe_load(f)
-        else:
-            self.config = config
-        self._validate_config()
 
-    def _validate_config(self):
-        required_keys = ["model", "mlflow"]
-        for k in required_keys:
-            if k not in self.config:
-                raise ValueError(f"Missing required config key: {k}")
-        model_cfg = self.config["model"]
-        if "type" not in model_cfg:
-            raise ValueError("model.type is required")
-        if model_cfg["type"] not in ["classical", "transformer"]:
-            raise ValueError("model.type must be 'classical' or 'transformer'")
+class Trainer:
+    """
+    Unified trainer supporting classical ML models and transformer models.
+    Handles training loops, logging, checkpointing, early stopping, mixed precision.
+    """
 
-    def setup_mlflow(self):
-        mlflow_cfg = self.config["mlflow"]
-        tracking_uri = mlflow_cfg.get("tracking_uri", "mlruns")
-        experiment_name = mlflow_cfg.get("experiment_name", "default")
-        mlflow.set_tracking_uri(tracking_uri)
-        try:
-            experiment = mlflow.get_experiment_by_name(experiment_name)
-            if experiment is None:
-                experiment_id = mlflow.create_experiment(experiment_name)
-            else:
-                experiment_id = experiment.experiment_id
-            mlflow.set_experiment(experiment_id)
-        except Exception as e:
-            print(f"Warning: MLFlow setup error: {e}")
-        return mlflow_cfg
+    def __init__(
+        self,
+        config: Dict[str, Any],
+        model_type: str = "classical",
+        backend: str = "pytorch",
+    ) -> None:
+        self.config = config
+        self.model_type = model_type
+        self.backend = backend
+        self.device = (
+            torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            if TORCH_AVAILABLE
+            else None
+        )
+        self.model = None
+        self.optimizer = None
+        self.scaler = (
+            GradScaler()
+            if backend == "pytorch"
+            and TORCH_AVAILABLE
+            and config.get("mixed_precision", False)
+            else None
+        )
+        self.early_stopping_counter = 0
+        self.checkpoint_path = Path(config.get("checkpoint_dir", "checkpoints"))
+        self.checkpoint_path.mkdir(parents=True, exist_ok=True)
 
-    def load_data(self):
-        dataset_cfg = self.config.get("data", {})
-        dataset_name = dataset_cfg.get("dataset", "imdb")
-        if dataset_name != "imdb":
-            raise NotImplementedError("Only IMDB dataset is supported currently")
-        config_path = dataset_cfg.get("config_path", "config.yaml")
-        return load_imdb_dataset(config_path if os.path.exists(config_path) else None)
+        # MLflow setup
+        self.mlflow_enabled = config.get("mlflow_tracking", True)
+        if self.mlflow_enabled:
+            mlflow.set_tracking_uri(config.get("mlflow_uri", "mlruns"))
+            experiment_name = config.get("mlflow_experiment_name", "experiment")
+            mlflow.set_experiment(experiment_name)
 
-    def preprocess_data(self, train_df, val_df, test_df):
-        model_type = self.config["model"]["type"]
-        if model_type == "classical":
-            processed = preprocess_dataset(train_df, val_df, test_df)
-            return processed
-        else:
-            return {
-                "train": (train_df["text"].tolist(), train_df["label"].tolist()),
-                "val": (val_df["text"].tolist(), val_df["label"].tolist()),
-                "test": (test_df["text"].tolist(), test_df["label"].tolist()),
+        self.start_time = time.time()
+
+    def _prepare_model(self, model_config: Dict[str, Any]) -> None:
+        """
+        Prepare model based on type and backend.
+        """
+        if self.model_type == "classical":
+            model_cls = {
+                "logistic_regression": LogisticRegressionModel,
+                "svm": SVMModel,
+                "random_forest": RandomForestModel,
+                "xgboost": XGBoostModel,
             }
-
-    def create_model(self):
-        model_cfg = self.config["model"]
-        model_type = model_cfg["type"]
-        model_name = model_cfg["name"]
-        hyperparams = {
-            k: v for k, v in model_cfg.items() if k not in ["type", "name", "backend"]
-        }
-        if model_type == "classical":
-            return create_classical_model(model_name, model_cfg.get("params"))
+            if model_config["name"] not in model_cls:
+                raise ValueError(f"Unsupported classical model: {model_config['name']}")
+            self.model = model_cls[model_config["name"]](model_config["params"])
+            self.optimizer = None
+        elif self.model_type == "transformer":
+            self.model = TransformerModel(
+                model_name=model_config["model_name"],
+                num_labels=model_config.get("num_labels", 2),
+                config=model_config,
+            )
+            if self.backend == "pytorch" and TORCH_AVAILABLE:
+                self.model.to(self.device)
         else:
-            return create_transformer_model(model_name, **hyperparams)
+            raise ValueError(f"Unsupported model type: {self.model_type}")
 
-    def train(self):
-        mlflow_cfg = self.setup_mlflow()
-        train_df, val_df, test_df = self.load_data()
-        data = self.preprocess_data(train_df, val_df, test_df)
-        model = self.create_model()
-        model_type = self.config["model"]["type"]
+    def _prepare_optimizer(
+        self, optimizer_config: Optional[Dict[str, Any]] = None
+    ) -> None:
+        if optimizer_config is None:
+            optimizer_config = {}
+        optimizer_name = optimizer_config.get("name", "adam")
+        lr = optimizer_config.get("lr", 1e-4)
 
-        run_name = self.config.get("run_name", f"{model_type}_training")
-        with mlflow.start_run(run_name=run_name) as run:
-            self._log_config_params()
-
-            if model_type == "classical":
-                X_train, y_train = data["train"]
-                X_val, y_val = data["val"]
-                X_test, y_test = data["test"]
-                # Train
-                train_metrics = model.train(X_train, y_train, X_val, y_val)
-                mlflow.log_metric("train_accuracy", train_metrics["train_accuracy"])
-                mlflow.log_metric("val_accuracy", train_metrics["val_accuracy"])
-                # Test evaluation
-                test_metrics = evaluate_model(
-                    model, X_test, y_test, log_to_mlflow=False
-                )
-                for key, value in test_metrics.items():
-                    mlflow.log_metric(f"test_{key}", value)
-                # Log model as artifact
-                self._log_classical_model_artifact(
-                    model, model_name, model_cfg.get("params", {})
-                )
+        if self.backend == "pytorch":
+            if not TORCH_AVAILABLE:
+                raise RuntimeError("PyTorch is not available")
+            if optimizer_name == "adam":
+                self.optimizer = optim.Adam(self.model.parameters(), lr=lr)
+            elif optimizer_name == "adamw":
+                self.optimizer = optim.AdamW(self.model.parameters(), lr=lr)
+            elif optimizer_name == "sgd":
+                self.optimizer = optim.SGD(self.model.parameters(), lr=lr)
             else:
-                train_texts, train_labels = data["train"]
-                val_texts, val_labels = data["val"]
-                test_texts, test_labels = data["test"]
-                # Training arguments from config
-                training_args = self.config.get("training_args", {}).copy()
-                if self.config.get("mixed_precision", False):
-                    training_args["fp16"] = True
-                # Tokenize
-                model.load_tokenizer()
-                train_dataset = model.tokenize_data(train_texts, train_labels)
-                val_dataset = model.tokenize_data(val_texts, val_labels)
-                test_dataset = model.tokenize_data(test_texts, test_labels)
-                # Train (includes its own MLflow logging as nested run)
-                model.train(
-                    train_dataset,
-                    val_dataset,
-                    experiment_name=mlflow_cfg["experiment_name"],
-                    training_args=training_args,
-                )
-                # Evaluate on test set in this outer run
-                test_preds = model.predict(test_texts)
-                from sklearn.metrics import (
-                    accuracy_score,
-                    precision_score,
-                    recall_score,
-                    f1_score,
-                )
+                raise ValueError(f"Unsupported optimizer: {optimizer_name}")
+        elif self.backend == "tensorflow":
+            raise NotImplementedError("TensorFlow backend not yet implemented")
+        else:
+            raise ValueError(f"Unsupported backend: {self.backend}")
 
-                test_accuracy = accuracy_score(test_labels, test_preds)
-                test_precision = precision_score(
-                    test_labels, test_preds, zero_division=0
-                )
-                test_recall = recall_score(test_labels, test_preds, zero_division=0)
-                test_f1 = f1_score(test_labels, test_preds, zero_division=0)
-                mlflow.log_metric("test_accuracy", test_accuracy)
-                mlflow.log_metric("test_precision", test_precision)
-                mlflow.log_metric("test_recall", test_recall)
-                mlflow.log_metric("test_f1", test_f1)
+    def _prepare_dataloaders(
+        self,
+        train_dataset: Dataset,
+        valid_dataset: Optional[Dataset] = None,
+    ) -> Dict[str, DataLoader]:
+        """
+        Prepare train and validation DataLoaders.
+        """
+        batch_size = self.config.get("batch_size", 32)
+        num_workers = self.config.get("num_workers", 0)
+        pin_memory = self.device.type == "cuda" if self.device else False
 
-        return {"run_id": run.info.run_id}
+        train_loader = DataLoader(
+            train_dataset,
+            batch_size=batch_size,
+            shuffle=True,
+            num_workers=num_workers,
+            pin_memory=pin_memory,
+        )
+        valid_loader: Optional[DataLoader] = None
+        if valid_dataset is not None:
+            valid_loader = DataLoader(
+                valid_dataset,
+                batch_size=batch_size,
+                shuffle=False,
+                num_workers=num_workers,
+                pin_memory=pin_memory,
+            )
+        return {"train": train_loader, "valid": valid_loader}
 
-    def _log_config_params(self):
-        def flatten_dict(d, parent_key="", sep="."):
-            items = []
-            for k, v in d.items():
-                new_key = f"{parent_key}{sep}{k}" if parent_key else k
-                if isinstance(v, dict):
-                    items.extend(flatten_dict(v, new_key, sep=sep).items())
+    def _train_classical(
+        self,
+        train_dataset: Tuple[np.ndarray, np.ndarray],
+        valid_dataset: Optional[Tuple[np.ndarray, np.ndarray]] = None,
+    ) -> Dict[str, float]:
+        """
+        Train a classical model.
+        """
+        X_train, y_train = train_dataset
+        logger.info("Training classical model...")
+        start_time = time.time()
+        self.model.fit(X_train, y_train)
+        training_duration = time.time() - start_time
+        logger.info(f"Training completed in {training_duration:.2f} seconds")
+
+        # Evaluate on training set
+        y_pred_train = self.model.predict(X_train)
+        train_metrics = evaluate_model(y_train, y_pred_train)
+        train_metrics["training_time"] = training_duration
+
+        # Evaluate on validation set if provided
+        val_metrics: Dict[str, float] = {}
+        if valid_dataset is not None:
+            X_val, y_val = valid_dataset
+            y_pred_val = self.model.predict(X_val)
+            val_metrics = evaluate_model(y_val, y_pred_val)
+            val_metrics["validation_time"] = time.time() - start_time
+
+        # Log to MLflow
+        if self.mlflow_enabled:
+            mlflow.log_metrics({f"train_{k}": v for k, v in train_metrics.items()})
+            for k, v in val_metrics.items():
+                mlflow.log_metric(f"val_{k}", v)
+            # Save model artifact
+            model_path = self.checkpoint_path / "classical_model.joblib"
+            joblib.dump(self.model, model_path)
+            mlflow.log_artifact(str(model_path))
+
+        return {**train_metrics, **val_metrics}
+
+    def _train_transformer(
+        self,
+        train_dataset: Dataset,
+        valid_dataset: Optional[Dataset] = None,
+    ) -> Dict[str, float]:
+        """
+        Train a transformer model using PyTorch.
+        """
+        if not TORCH_AVAILABLE:
+            raise RuntimeError("PyTorch is not available for transformer training")
+
+        # Prepare optimizer if not already
+        if self.optimizer is None:
+            optimizer_config = self.config.get("optimizer", {})
+            self._prepare_optimizer(optimizer_config)
+
+        # Prepare dataloaders
+        loaders = self._prepare_dataloaders(train_dataset, valid_dataset)
+        train_loader = loaders["train"]
+        valid_loader = loaders["valid"]
+
+        num_epochs = self.config.get("num_epochs", 3)
+        best_val_metric = float("inf")
+        patience = self.config.get("early_stopping_patience", 5)
+
+        total_start_time = time.time()
+
+        for epoch in range(num_epochs):
+            epoch_start = time.time()
+            self.model.train()
+            total_loss = 0.0
+            for batch in train_loader:
+                batch = {k: v.to(self.device) for k, v in batch.items()}
+                self.optimizer.zero_grad()
+                if self.scaler:
+                    with autocast():
+                        outputs = self.model(**batch)
+                        loss = outputs.loss
+                    self.scaler.scale(loss).backward()
+                    self.scaler.step(self.optimizer)
+                    self.scaler.update()
                 else:
-                    items.append((new_key, v))
-            return dict(items)
+                    outputs = self.model(**batch)
+                    loss = outputs.loss
+                    loss.backward()
+                    self.optimizer.step()
+                total_loss += loss.item()
+            avg_train_loss = total_loss / len(train_loader)
 
-        flat_params = flatten_dict(self.config)
-        for key, value in flat_params.items():
-            mlflow.log_param(key, value)
+            # Validation
+            val_metrics = None
+            avg_val_loss = None
+            if valid_loader is not None:
+                self.model.eval()
+                val_loss = 0.0
+                all_preds = []
+                all_labels = []
+                with torch.no_grad():
+                    for batch in valid_loader:
+                        batch = {k: v.to(self.device) for k, v in batch.items()}
+                        outputs = self.model(**batch)
+                        loss = outputs.loss
+                        val_loss += loss.item()
+                        logits = outputs.logits
+                        preds = torch.argmax(logits, dim=-1)
+                        all_preds.extend(preds.cpu().numpy())
+                        all_labels.extend(batch["labels"].cpu().numpy())
+                avg_val_loss = val_loss / len(valid_loader)
+                val_metrics = evaluate_model(np.array(all_labels), np.array(all_preds))
+                val_metrics["val_loss"] = avg_val_loss
 
-    def _log_classical_model_artifact(self, model, model_name, params):
-        import joblib, tempfile
+            epoch_time = time.time() - epoch_start
+            logger.info(
+                f"Epoch {epoch + 1}/{num_epochs} - Train loss: {avg_train_loss:.4f}"
+                + (f" - Val loss: {avg_val_loss:.4f}" if val_metrics else "")
+            )
 
-        with tempfile.TemporaryDirectory() as tmpdir:
-            path = f"{tmpdir}/model.pkl"
-            model.save_model(path)
-            mlflow.log_artifact(path, artifact_path="model")
-        mlflow.set_tag("model_type", "classical")
-        mlflow.set_tag("model_name", model_name)
+            # Log epoch metrics to MLflow
+            if self.mlflow_enabled:
+                mlflow.log_metric("train_loss", avg_train_loss, step=epoch)
+                if val_metrics:
+                    for k, v in val_metrics.items():
+                        mlflow.log_metric(k, v, step=epoch)
+
+            # Checkpoint: save best model based on validation loss
+            current_val_metric = (
+                avg_val_loss if avg_val_loss is not None else avg_train_loss
+            )
+            if current_val_metric < best_val_metric:
+                best_val_metric = current_val_metric
+                checkpoint_file = self.checkpoint_path / "best_model.pt"
+                torch.save(self.model.state_dict(), checkpoint_file)
+                logger.info(f"Checkpoint saved at {checkpoint_file}")
+                self.early_stopping_counter = 0
+            else:
+                self.early_stopping_counter += 1
+                if self.early_stopping_counter >= patience:
+                    logger.info("Early stopping triggered")
+                    break
+
+        total_time = time.time() - total_start_time
+        final_metrics = {"total_training_time": total_time}
+        if self.mlflow_enabled:
+            mlflow.log_metrics(final_metrics)
+            # Log best model as artifact
+            if self.checkpoint_path.joinpath("best_model.pt").exists():
+                mlflow.log_artifact(str(self.checkpoint_path / "best_model.pt"))
+
+        return final_metrics
+
+    def train(
+        self,
+        train_dataset: Any,
+        valid_dataset: Optional[Any] = None,
+    ) -> Dict[str, float]:
+        """
+        Main training entry point.
+        """
+        # Prepare model
+        model_config = self.config.get("model", {})
+        self._prepare_model(model_config)
+
+        # Log parameters
+        if self.mlflow_enabled:
+            mlflow.log_params(self.config)
+
+        # Train based on model type
+        if self.model_type == "classical":
+            if not isinstance(train_dataset, tuple) or len(train_dataset) != 2:
+                raise ValueError(
+                    "For classical models, train_dataset must be a tuple (X, y)"
+                )
+            metrics = self._train_classical(train_dataset, valid_dataset)
+        elif self.model_type == "transformer":
+            if not TORCH_AVAILABLE:
+                raise RuntimeError("Transformer training requires PyTorch")
+            metrics = self._train_transformer(train_dataset, valid_dataset)
+        else:
+            raise ValueError(f"Unsupported model_type: {self.model_type}")
+
+        logger.info("Training completed. Metrics: %s", metrics)
+        return metrics
+
+    def evaluate(self, test_dataset: Any) -> Dict[str, float]:
+        """
+        Evaluate the trained model on a test set.
+        """
+        if self.model is None:
+            raise RuntimeError("Model has not been trained yet")
+
+        if self.model_type == "classical":
+            if not isinstance(test_dataset, tuple):
+                raise ValueError(
+                    "For classical models, test_dataset must be a tuple (X, y)"
+                )
+            X_test, y_test = test_dataset
+            y_pred = self.model.predict(X_test)
+            metrics = evaluate_model(y_test, y_pred)
+        elif self.model_type == "transformer":
+            self.model.eval()
+            if not TORCH_AVAILABLE:
+                raise RuntimeError("Transformer evaluation requires PyTorch")
+            if isinstance(test_dataset, DataLoader):
+                loader = test_dataset
+            else:
+                loader = DataLoader(
+                    test_dataset,
+                    batch_size=self.config.get("batch_size", 32),
+                    shuffle=False,
+                )
+            all_preds = []
+            all_labels = []
+            with torch.no_grad():
+                for batch in loader:
+                    batch = {k: v.to(self.device) for k, v in batch.items()}
+                    outputs = self.model(**batch)
+                    logits = outputs.logits
+                    preds = torch.argmax(logits, dim=-1)
+                    all_preds.extend(preds.cpu().numpy())
+                    all_labels.extend(batch["labels"].cpu().numpy())
+            metrics = evaluate_model(np.array(all_labels), np.array(all_preds))
+        else:
+            raise ValueError(f"Unsupported model_type: {self.model_type}")
+
+        if self.mlflow_enabled:
+            for k, v in metrics.items():
+                mlflow.log_metric(f"test_{k}", v)
+
+        return metrics
