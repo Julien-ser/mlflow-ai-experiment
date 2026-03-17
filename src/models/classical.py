@@ -116,21 +116,17 @@ class SVMModel:
         self.model = None  # This will hold the calibrated model
 
     def train(self, X_train, y_train, X_val, y_val):
-        """Train SVM model with probability calibration."""
-        # First train a LinearSVC (fast for high-dimensional sparse data)
-        self.base_model = LinearSVC(**self.params)
-        self.base_model.fit(X_train, y_train)
-
-        # Then calibrate to get probability estimates using validation set
+        """Train SVM model with probability calibration using cross-validation."""
+        # Use LinearSVC as base classifier and calibrate using CV
         self.model = CalibratedClassifierCV(
-            self.base_model,
+            LinearSVC(**self.params),
             method="sigmoid",
-            cv="prefit",  # Use the pre-trained base model
+            cv=2,  # Use 2-fold CV for calibration
         )
-        self.model.fit(X_val, y_val)
+        self.model.fit(X_train, y_train)
 
-        train_score = self.base_model.score(X_train, y_train)
-        val_score = self.base_model.score(X_val, y_val)
+        train_score = self.model.score(X_train, y_train)
+        val_score = self.model.score(X_val, y_val)
 
         return {"train_accuracy": train_score, "val_accuracy": val_score}
 
