@@ -6,10 +6,10 @@ import yaml
 import os
 import mlflow
 from mlflow.tracking import MlflowClient
-from data_loader import load_imdb_dataset
-from preprocessing import preprocess_dataset
-from models.classical import create_model
-from evaluation import evaluate_model
+from .data_loader import load_imdb_dataset
+from .preprocessing import preprocess_dataset
+from .models.classical import create_model
+from .evaluation import evaluate_model
 
 
 def setup_mlflow(config_path="config.yaml"):

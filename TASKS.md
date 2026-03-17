@@ -14,8 +14,8 @@
 ## Phase 2: Data Management & Preprocessing
 - [x] Download and prepare dataset: Download IMDB dataset using HuggingFace `datasets` library, perform initial exploration, and create standardized train/validation/test splits
   - Deliverable: `data/` folder with processed splits (`train.csv`, `validation.csv`, `test.csv`), `src/data_loader.py` with dataset handling, and data exploration notebook `notebooks/01_data_exploration.ipynb`
-- [ ] Implement text preprocessing pipeline: Create modular preprocessing functions for tokenization, padding, and cleaning; implement different tokenization strategies for classical ML vs. transformers
-  - Deliverable: `src/preprocessing.py` with configurable pipelines, `src/tokenizers.py` for BERT/RoBERTa/DistilBERT tokenizers, and tests in `tests/test_preprocessing.py`
+ - [x] Implement text preprocessing pipeline: Create modular preprocessing functions for tokenization, padding, and cleaning; implement different tokenization strategies for classical ML vs. transformers
+   - Deliverable: `src/preprocessing.py` with configurable pipelines, `src/tokenizers.py` for BERT/RoBERTa/DistilBERT tokenizers, and tests in `tests/test_preprocessing.py`
 - [ ] Create data utilities for MLFlow logging: Implement data versioning approach and utilities to log dataset statistics, splits, and preprocessing parameters to MLFlow
   - Deliverable: `src/data_utils.py` with functions to log data artifacts and metrics, `src/data_versioning.py` with checksum-based versioning, and updated data loading scripts
 - [ ] Benchmark data pipeline performance: Measure and log data loading times, preprocessing throughput, and memory usage for different batch sizes

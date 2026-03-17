@@ -155,16 +155,20 @@ All experiments are automatically tracked in MLFlow with:
   - `src/baseline.py` with TF-IDF + Logistic Regression
   - Project structure complete with `src/`, `data/`, `models/`, `experiments/`, `notebooks/`
 
-**Phase 2: Data Management & Preprocessing** - In Progress
-- [x] Dataset download and preparation
-  - IMDB dataset downloaded using HuggingFace `datasets` library
-  - Train/validation/test splits created (22,501 / 2,501 / 25,001 samples)
-  - Processed files saved in `data/` as CSV
-  - Data exploration notebook: `notebooks/01_data_exploration.ipynb`
-  - Dataset loading utility: `src/data_loader.py`
-- [ ] Text preprocessing pipeline
-- [ ] Data utilities for MLFlow logging
-- [ ] Data pipeline performance benchmarking
+ **Phase 2: Data Management & Preprocessing** - In Progress
+ - [x] Dataset download and preparation
+   - IMDB dataset downloaded using HuggingFace `datasets` library
+   - Train/validation/test splits created (22,501 / 2,501 / 25,001 samples)
+   - Processed files saved in `data/` as CSV
+   - Data exploration notebook: `notebooks/01_data_exploration.ipynb`
+   - Dataset loading utility: `src/data_loader.py`
+ - [x] Text preprocessing pipeline
+   - Modular preprocessing functions: `src/preprocessing.py`
+   - Tokenization strategies for classical ML (TF-IDF) and transformers (BERT, RoBERTa, DistilBERT, etc.)
+   - Unified interface: `preprocess_dataset()` supporting both modes
+   - Comprehensive test suite: `tests/test_preprocessing.py` (26 tests passing)
+ - [ ] Data utilities for MLFlow logging
+ - [ ] Data pipeline performance benchmarking
 
 See [TASKS.md](TASKS.md) for full task list.
 
