@@ -1,0 +1,18 @@
+# Baseline Model Configuration
+model:
+  name: "logistic_regression"
+  params:
+    C: 1.0
+    max_iter: 1000
+    solver: "liblinear"
+    random_state: 42
+
+preprocessing:
+  max_features: 5000
+  ngram_range: [1, 2]
+  min_df: 5
+  max_df: 0.7
+  stop_words: "english"
+
+training:
+  random_seed: 42
