@@ -14,7 +14,17 @@ import numpy as np
 import mlflow
 import joblib  # type: ignore
 
-# Runtime imports (optional PyTorch)
+# Local imports
+from .models.classical import (
+    LogisticRegressionModel,
+    SVMModel,
+    RandomForestModel,
+    XGBoostModel,
+)
+from .models.transformers import TransformerModel
+from .evaluation import compute_metrics
+
+# Optional PyTorch import
 try:
     import torch
     from torch.utils.data import DataLoader
@@ -31,15 +41,6 @@ except ImportError:
 import importlib.util
 
 TF_AVAILABLE = importlib.util.find_spec("tensorflow") is not None
-
-from .models.classical import (
-    LogisticRegressionModel,
-    SVMModel,
-    RandomForestModel,
-    XGBoostModel,
-)
-from .models.transformers import TransformerModel
-from .evaluation import compute_metrics
 
 logger = logging.getLogger(__name__)
 
