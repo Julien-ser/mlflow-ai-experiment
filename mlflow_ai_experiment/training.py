@@ -20,7 +20,6 @@ from .experiment_tracker import (
     get_or_create_family_experiment,
     set_standard_tags,
     log_model_artifact,
-    log_predictions,
 )
 
 # Local imports
@@ -91,6 +90,8 @@ class Trainer:
             # We need a config with 'experiments' mapping; fallback to using simple experiment name
             if "experiments" in config:
                 self.experiment = get_or_create_family_experiment(config, model_family)
+                # Set the active experiment to the family experiment
+                mlflow.set_experiment(self.experiment.name)
             else:
                 # Legacy: use single experiment name
                 experiment_name = config.get("mlflow_experiment_name", model_family)
