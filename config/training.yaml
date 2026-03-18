@@ -11,7 +11,7 @@ data:
 
 # MLflow tracking configuration
 mlflow_tracking: true
-mlflow_uri: "mlruns"
+  mlflow_uri: "sqlite:///mlflow.db"
 mlflow_experiment_name: "unified_training"
 
 # Training mode: "classical" or "transformer"

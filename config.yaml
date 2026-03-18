@@ -1,6 +1,6 @@
 # MLFlow Configuration
 tracking:
-  uri: "mlruns"  # Local directory for MLflow tracking data
+  uri: "sqlite:///mlflow.db"  # SQLite database for MLflow tracking (recommended)
 
 experiments:
   classical: "imdb_sentiment_analysis_classical"

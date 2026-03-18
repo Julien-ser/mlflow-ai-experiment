@@ -26,7 +26,7 @@ def load_config(config_path: str = "config.yaml") -> dict:
     return config
 
 
-def setup_mlflow_tracking(tracking_uri: str = "mlruns") -> None:
+def setup_mlflow_tracking(tracking_uri: str = "sqlite:///mlflow.db") -> None:
     """Configure MLflow tracking URI."""
     mlflow.set_tracking_uri(tracking_uri)
     print(f"✓ MLflow tracking URI set to: {tracking_uri}")
@@ -53,7 +53,7 @@ def get_or_create_family_experiment(config: dict, model_family: str) -> Experime
         )
 
     experiment_name = family_experiments[model_family]
-    artifact_location = config["experiment"].get("artifact_location", "mlruns")
+    artifact_location = config["experiment"].get("artifact_location", "mlartifacts")
 
     # Try to get existing experiment
     experiment = mlflow.get_experiment_by_name(experiment_name)
