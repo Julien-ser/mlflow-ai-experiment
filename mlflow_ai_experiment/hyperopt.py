@@ -207,12 +207,12 @@ def objective_classical(
     params = get_classical_search_space(trial, model_type)
 
     # Create and train model
-    model_class: Type[ClassicalModel] = {
-        "logistic_regression": cast(Type[ClassicalModel], LogisticRegressionModel),
-        "svm": cast(Type[ClassicalModel], SVMModel),
-        "random_forest": cast(Type[ClassicalModel], RandomForestModel),
-        "xgboost": cast(Type[ClassicalModel], XGBoostModel),
-    }[model_type]
+     model_class: Type[ClassicalModel] = cast(Type[ClassicalModel], {
+         "logistic_regression": LogisticRegressionModel,
+         "svm": SVMModel,
+         "random_forest": RandomForestModel,
+         "xgboost": XGBoostModel,
+     }[model_type])
 
     model: Any = model_class(params=params)
     result = model.train(X_train, y_train, X_val, y_val)
