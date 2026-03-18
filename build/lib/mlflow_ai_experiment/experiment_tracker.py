@@ -15,14 +15,6 @@ from pathlib import Path
 from typing import Dict, Optional, Any
 import pandas as pd
 import joblib
-import warnings
-
-# Suppress MLflow's UserWarning about Any type hints in Python 3.14+
-warnings.filterwarnings(
-    "ignore",
-    message=r"Any type hint is inferred as AnyType",
-    category=UserWarning,
-)
 
 
 def load_config(config_path: str = "config.yaml") -> dict:
@@ -129,22 +121,19 @@ def log_sklearn_model(
     """Log a scikit-learn model to MLflow."""
     import mlflow.sklearn as mlflow_sklearn
 
-    # Suppress UserWarnings during MLflow model logging (e.g., type hint warnings, pydantic v1 compatibility)
-    with warnings.catch_warnings():
-        warnings.simplefilter("ignore", UserWarning)
-        if input_example is not None:
-            mlflow_sklearn.log_model(
-                model,
-                artifact_path=artifact_path,
-                input_example=input_example,
-                registered_model_name=registered_model_name,
-            )
-        else:
-            mlflow_sklearn.log_model(
-                model,
-                artifact_path=artifact_path,
-                registered_model_name=registered_model_name,
-            )
+    if input_example is not None:
+        mlflow_sklearn.log_model(
+            model,
+            artifact_path=artifact_path,
+            input_example=input_example,
+            registered_model_name=registered_model_name,
+        )
+    else:
+        mlflow_sklearn.log_model(
+            model,
+            artifact_path=artifact_path,
+            registered_model_name=registered_model_name,
+        )
 
 
 def log_transformers_model(
