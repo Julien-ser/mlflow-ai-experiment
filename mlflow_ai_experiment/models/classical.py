@@ -6,7 +6,7 @@ from typing import Any, Dict, Optional
 
 import joblib  # type: ignore
 import mlflow
-import mlflow.sklearn as mlflow_sklearn  # type: ignore
+
 import numpy as np
 import xgboost as xgb
 from sklearn.calibration import CalibratedClassifierCV  # type: ignore
@@ -14,7 +14,7 @@ from sklearn.ensemble import RandomForestClassifier  # type: ignore
 from sklearn.linear_model import LogisticRegression  # type: ignore
 from sklearn.svm import LinearSVC  # type: ignore
 
-from ..experiment_tracker import set_standard_tags
+from ..experiment_tracker import set_standard_tags, log_model_artifact
 
 
 class LogisticRegressionModel:
@@ -68,10 +68,13 @@ class LogisticRegressionModel:
                 mlflow.log_param(key, value)
 
             # Log model
-            if X_test is not None:
-                mlflow_sklearn.log_model(self.model, "model", input_example=X_test[:1])
-            else:
-                mlflow_sklearn.log_model(self.model, "model")
+            log_model_artifact(
+                model=self.model,
+                model_type="logistic_regression",
+                framework="sklearn",
+                artifact_path="model",
+                input_example=X_test[:1] if X_test is not None else None,
+            )
 
             # Log evaluation metrics if test data provided
             if X_test is not None and y_test is not None:
@@ -162,10 +165,13 @@ class SVMModel:
                 mlflow.log_param(key, value)
 
             # Log model
-            if X_test is not None:
-                mlflow_sklearn.log_model(self.model, "model", input_example=X_test[:1])
-            else:
-                mlflow_sklearn.log_model(self.model, "model")
+            log_model_artifact(
+                model=self.model,
+                model_type="svm",
+                framework="sklearn",
+                artifact_path="model",
+                input_example=X_test[:1] if X_test is not None else None,
+            )
 
             # Log evaluation metrics if test data provided
             if X_test is not None and y_test is not None:
@@ -255,10 +261,13 @@ class RandomForestModel:
                 mlflow.log_param(key, value)
 
             # Log model
-            if X_test is not None:
-                mlflow_sklearn.log_model(self.model, "model", input_example=X_test[:1])
-            else:
-                mlflow_sklearn.log_model(self.model, "model")
+            log_model_artifact(
+                model=self.model,
+                model_type="random_forest",
+                framework="sklearn",
+                artifact_path="model",
+                input_example=X_test[:1] if X_test is not None else None,
+            )
 
             # Log evaluation metrics if test data provided
             if X_test is not None and y_test is not None:
@@ -357,10 +366,13 @@ class XGBoostModel:
                 mlflow.log_param(key, value)
 
             # Log model
-            if X_test is not None:
-                mlflow_sklearn.log_model(self.model, "model", input_example=X_test[:1])
-            else:
-                mlflow_sklearn.log_model(self.model, "model")
+            log_model_artifact(
+                model=self.model,
+                model_type="xgboost",
+                framework="xgboost",
+                artifact_path="model",
+                input_example=X_test[:1] if X_test is not None else None,
+            )
 
             # Log evaluation metrics if test data provided
             if X_test is not None and y_test is not None:

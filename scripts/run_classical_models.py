@@ -27,6 +27,7 @@ from mlflow_ai_experiment.preprocessing import preprocess_dataset  # type: ignor
 from mlflow_ai_experiment.experiment_tracker import (
     load_config,
     get_or_create_family_experiment,
+    log_predictions,
 )
 
 config = load_config()
@@ -121,7 +122,9 @@ def train_and_evaluate_model(
     # Log model artifact path and predictions as MLflow artifacts
     with mlflow.start_run(run_id=run_id):
         mlflow.set_tag("model_path", model_path)
-        mlflow.log_artifact(predictions_path, "predictions")
+        log_predictions(
+            predictions_df, artifact_path="predictions", filename="predictions.csv"
+        )
 
     return metrics
 

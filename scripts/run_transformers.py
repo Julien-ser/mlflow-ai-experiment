@@ -25,6 +25,7 @@ from mlflow_ai_experiment.experiment_tracker import (
     load_config,
     get_or_create_family_experiment,
     set_standard_tags,
+    log_predictions,
 )
 
 config = load_config()
@@ -198,7 +199,9 @@ def train_and_evaluate_transformer(
             )
 
         # Log predictions artifact
-        mlflow.log_artifact(predictions_path, "predictions")
+        log_predictions(
+            predictions_df, artifact_path="predictions", filename="predictions.csv"
+        )
 
         metrics["run_id"] = run.info.run_id
 

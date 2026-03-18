@@ -8,7 +8,7 @@ Supports BERT, RoBERTa, DeBERTa, XLNet with custom classification heads.
 from typing import List, Optional, Union
 
 import mlflow
-import mlflow.transformers  # type: ignore
+
 import numpy as np
 import torch
 from transformers import (
@@ -26,7 +26,7 @@ from transformers import (
     XLNetForSequenceClassification,
 )
 
-from ..experiment_tracker import set_standard_tags
+from ..experiment_tracker import set_standard_tags, log_model_artifact
 
 # TensorFlow availability
 try:
@@ -548,29 +548,17 @@ class TransformerModel:
                     for key, value in train_result.metrics.items():
                         mlflow.log_metric(f"train_{key}", value)
 
-            # Log model using transformers flavor
+            # Log model using the central utility
             if self.model is not None and self.tokenizer is not None:
-                # Create a simple pipeline for inference
-                from transformers import pipeline
-
-                pipeline(
-                    "text-classification",
+                model_type = self._extract_model_type(self.model_name)
+                log_model_artifact(
                     model=self.model,
-                    tokenizer=self.tokenizer,
-                    device=0 if self.device.type == "cuda" else -1,
-                )
-
-                mlflow.transformers.log_model(  # type: ignore
-                    transformers_model={
-                        "model": self.model,
-                        "tokenizer": self.tokenizer,
-                    },
+                    model_type=model_type,
+                    framework="transformers",
                     artifact_path="model",
+                    tokenizer=self.tokenizer,
                     task="text-classification",
                     input_example="Sample text for classification",
-                    signature=mlflow.models.signature.infer_signature(  # type: ignore
-                        ["input text"], [{"label": "positive", "score": 0.9}]
-                    ),
                 )
 
             # Set standardized tags
