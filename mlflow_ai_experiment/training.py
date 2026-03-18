@@ -89,7 +89,7 @@ class Trainer:
             model_family = "classical" if model_type == "classical" else "transformers"
 
             # Get or create experiment for this model family
-            # We need a config with 'experiments' mapping; fallback to using simple experiment name
+            # Need 'experiments' config; fallback to simple experiment name
             if "experiments" in config:
                 self.experiment = get_or_create_family_experiment(config, model_family)
                 # Set the active experiment to the family experiment
@@ -120,7 +120,8 @@ class Trainer:
         elif self.model_type == "transformer":
             if not TORCH_AVAILABLE and self.backend == "pytorch":
                 raise RuntimeError(
-                    "PyTorch is not available for transformer training with PyTorch backend"
+                    "PyTorch is not available for transformer training "
+                    "with PyTorch backend"
                 )
             # Extract hyperparameters from config
             transformer_params = {
