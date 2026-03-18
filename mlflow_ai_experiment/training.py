@@ -280,8 +280,10 @@ class Trainer:
                 # Set standardized tags
                 set_standard_tags(
                     model_type=getattr(self, "model_type_str", self.model_type),
-                    dataset_version=self.config.get("dataset_version", "unknown"),
-                    preprocessing_config=self.config.get(
+                    dataset_version=self.config.get("tags", {}).get(
+                        "dataset_version", "unknown"
+                    ),
+                    preprocessing_config=self.config.get("tags", {}).get(
                         "preprocessing_config", "unknown"
                     ),
                     framework="sklearn"
