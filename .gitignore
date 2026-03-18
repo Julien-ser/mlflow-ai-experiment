@@ -30,6 +30,14 @@ logs/*.log
 logs/*.json
 logs/*.md
 
+# MLflow tracking (runtime generated)
+mlruns/
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
 # Data (raw and processed raw sources - keep structure but not content)
 # data/raw/*
 # data/external/*
