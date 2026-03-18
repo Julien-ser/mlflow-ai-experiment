@@ -33,10 +33,10 @@ logs/*.md
 # MLflow tracking (runtime generated)
 mlruns/
 
-# Build artifacts
-dist/
-build/
-*.egg-info/
+# Build artifacts (commented out for OpenCode build detection)
+# dist/
+# build/
+# *.egg-info/
 
 # Data (raw and processed raw sources - keep structure but not content)
 # data/raw/*
