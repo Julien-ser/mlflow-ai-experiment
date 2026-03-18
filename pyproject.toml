@@ -51,6 +51,9 @@ dev = [
     "ipykernel>=6.25.0",
 ]
 
+[tool.black]
+line-length = 79
+
 [tool.mypy]
 ignore_missing_imports = true
 

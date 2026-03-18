@@ -69,13 +69,17 @@ class Trainer:
         self.device = None
         if TORCH_AVAILABLE:
             assert torch is not None
-            self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            self.device = torch.device(
+                "cuda" if torch.cuda.is_available() else "cpu"
+            )
         self.model: Optional[Any] = None
         self.transformer_model: Optional[Any] = None
         self.optimizer: Optional[Any] = None
         self.scaler: Optional[Any] = None
         self.early_stopping_counter = 0
-        self.checkpoint_path = Path(config.get("checkpoint_dir", "checkpoints"))
+        self.checkpoint_path = Path(
+            config.get("checkpoint_dir", "checkpoints")
+        )
         self.checkpoint_path.mkdir(parents=True, exist_ok=True)
 
         # MLflow setup - use experiment_tracker for family-based experiments
@@ -86,17 +90,23 @@ class Trainer:
             mlflow.set_tracking_uri(tracking_uri)
 
             # Determine model family from model_type
-            model_family = "classical" if model_type == "classical" else "transformers"
+            model_family = (
+                "classical" if model_type == "classical" else "transformers"
+            )
 
             # Get or create experiment for this model family
             # Need 'experiments' config; fallback to simple experiment name
             if "experiments" in config:
-                self.experiment = get_or_create_family_experiment(config, model_family)
+                self.experiment = get_or_create_family_experiment(
+                    config, model_family
+                )
                 # Set the active experiment to the family experiment
                 mlflow.set_experiment(self.experiment.name)
             else:
                 # Legacy: use single experiment name
-                experiment_name = config.get("mlflow_experiment_name", model_family)
+                experiment_name = config.get(
+                    "mlflow_experiment_name", model_family
+                )
                 mlflow.set_experiment(experiment_name)
                 print(f"✓ Using experiment: {experiment_name}")
 
@@ -112,8 +122,12 @@ class Trainer:
                 "xgboost": XGBoostModel,
             }
             if model_config["name"] not in model_cls:
-                raise ValueError(f"Unsupported classical model: {model_config['name']}")
-            self.model = model_cls[model_config["name"]](model_config["params"])
+                raise ValueError(
+                    f"Unsupported classical model: {model_config['name']}"
+                )
+            self.model = model_cls[model_config["name"]](
+                model_config["params"]
+            )
             self.optimizer = None
             # Store model type string for tagging
             self.model_type_str = model_config["name"]
@@ -187,7 +201,9 @@ class Trainer:
 
         # Log to MLflow
         if self.mlflow_enabled:
-            mlflow.log_metrics({f"train_{k}": v for k, v in train_metrics.items()})
+            mlflow.log_metrics(
+                {f"train_{k}": v for k, v in train_metrics.items()}
+            )
             for k, v in val_metrics.items():
                 mlflow.log_metric(f"val_{k}", v)
             # Save model artifact using experiment_tracker
@@ -211,7 +227,10 @@ class Trainer:
         Train a transformer model by delegating to TransformerModel.train().
         """
         # Ensure transformer model is prepared
-        if not hasattr(self, "transformer_model") or self.transformer_model is None:
+        if (
+            not hasattr(self, "transformer_model")
+            or self.transformer_model is None
+        ):
             raise RuntimeError("Transformer model not prepared")
 
         # Build training arguments from config to override defaults
@@ -306,8 +325,12 @@ class Trainer:
                 mlflow.log_params(self.config)
                 # Set standardized tags
                 set_standard_tags(
-                    model_type=getattr(self, "model_type_str", self.model_type),
-                    dataset_version=self.config.get("dataset_version", "unknown"),
+                    model_type=getattr(
+                        self, "model_type_str", self.model_type
+                    ),
+                    dataset_version=self.config.get(
+                        "dataset_version", "unknown"
+                    ),
                     preprocessing_config=self.config.get(
                         "preprocessing_config", "unknown"
                     ),
@@ -370,7 +393,9 @@ class Trainer:
                     preds = torch.argmax(logits, dim=-1)
                     all_preds.extend(preds.cpu().numpy())
                     all_labels.extend(batch["labels"].cpu().numpy())
-            metrics = compute_metrics(np.array(all_labels), np.array(all_preds))
+            metrics = compute_metrics(
+                np.array(all_labels), np.array(all_preds)
+            )
             predictions_df = pd.DataFrame(
                 {
                     "true_label": all_labels,
