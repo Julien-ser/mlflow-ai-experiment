@@ -4,36 +4,21 @@ Hyperparameter optimization framework using Optuna with MLflow integration.
 Provides automated hyperparameter search across transformer and classical models.
 """
 
-import os
-from typing import Any, Callable, Dict, Optional, Tuple
+from typing import Any, Dict, Optional
 
 import mlflow
-import numpy as np
 import optuna
 from optuna.pruners import MedianPruner
 from optuna.samplers import TPESampler
 
-from .data_loader import load_imdb_dataset
 from .experiment_tracker import setup_mlflow_tracking, set_standard_tags
-from .preprocessing import preprocess_dataset
 from .models.classical import (
     LogisticRegressionModel,
     RandomForestModel,
     SVMModel,
     XGBoostModel,
 )
-from .models.transformers import (  # type: ignore
-    BERTModel,
-    DeBERTaModel,
-    DistilBERTModel,
-    ELECTRAModel,
-    GPT2Model,
-    ALBERTModel,
-    XLNetModel,
-    RoBERTaModel,
-    TransformerModel,
-    create_transformer_model,
-)
+from .models.transformers import create_transformer_model
 
 
 # ==================== Search Space Definitions ====================
