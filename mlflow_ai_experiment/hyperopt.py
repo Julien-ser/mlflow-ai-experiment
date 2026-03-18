@@ -299,6 +299,7 @@ def optimize_transformer_model(
         sampler=sampler,
         pruner=pruner,
         storage=f"sqlite:///optuna_{study_name}.db",
+        load_if_exists=True,
     )
 
     def objective_wrapper(trial):
@@ -372,6 +373,7 @@ def optimize_classical_model(
         sampler=sampler,
         pruner=pruner,
         storage=f"sqlite:///optuna_{study_name}.db",
+        load_if_exists=True,
     )
 
     def objective_wrapper(trial):
