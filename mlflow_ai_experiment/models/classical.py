@@ -62,12 +62,12 @@ class LogisticRegressionModel:
         """Log model and parameters to MLFlow."""
         mlflow.set_experiment(experiment_name)
 
-        with mlflow.start_run(run_name=run_name) as run:
-            # Log parameters
+        active_run = mlflow.active_run()
+        if active_run:
+            # Log to existing active run without starting a new one
             for key, value in self.params.items():
                 mlflow.log_param(key, value)
 
-            # Log model
             log_model_artifact(
                 model=self.model,
                 model_type="logistic_regression",
@@ -76,7 +76,6 @@ class LogisticRegressionModel:
                 input_example=X_test[:1] if X_test is not None else None,
             )
 
-            # Log evaluation metrics if test data provided
             if X_test is not None and y_test is not None:
                 assert self.model is not None
                 from sklearn.metrics import accuracy_score  # type: ignore
@@ -93,15 +92,52 @@ class LogisticRegressionModel:
                 )
                 mlflow.log_metric("f1", f1_score(y_test, y_pred, zero_division="warn"))
 
-            # Set standardized tags
             set_standard_tags(
                 model_type="logistic_regression",
                 dataset_version=dataset_version,
                 preprocessing_config=preprocessing_config,
                 framework="sklearn",
             )
+            return active_run.info.run_id
+        else:
+            with mlflow.start_run(run_name=run_name) as run:
+                for key, value in self.params.items():
+                    mlflow.log_param(key, value)
 
-            return run.info.run_id
+                log_model_artifact(
+                    model=self.model,
+                    model_type="logistic_regression",
+                    framework="sklearn",
+                    artifact_path="model",
+                    input_example=X_test[:1] if X_test is not None else None,
+                )
+
+                if X_test is not None and y_test is not None:
+                    assert self.model is not None
+                    from sklearn.metrics import accuracy_score  # type: ignore
+                    from sklearn.metrics import f1_score, precision_score, recall_score
+
+                    y_pred = self.predict(X_test)
+
+                    mlflow.log_metric("accuracy", accuracy_score(y_test, y_pred))
+                    mlflow.log_metric(
+                        "precision",
+                        precision_score(y_test, y_pred, zero_division="warn"),
+                    )
+                    mlflow.log_metric(
+                        "recall", recall_score(y_test, y_pred, zero_division="warn")
+                    )
+                    mlflow.log_metric(
+                        "f1", f1_score(y_test, y_pred, zero_division="warn")
+                    )
+
+                set_standard_tags(
+                    model_type="logistic_regression",
+                    dataset_version=dataset_version,
+                    preprocessing_config=preprocessing_config,
+                    framework="sklearn",
+                )
+                return run.info.run_id
 
     def save_model(self, path):
         """Save model to disk."""
@@ -160,11 +196,12 @@ class SVMModel:
         """Log model to MLFlow."""
         mlflow.set_experiment(experiment_name)
 
-        with mlflow.start_run(run_name=run_name) as run:
+        active_run = mlflow.active_run()
+        if active_run:
+            # Log to existing active run without starting a new one
             for key, value in self.params.items():
                 mlflow.log_param(key, value)
 
-            # Log model
             log_model_artifact(
                 model=self.model,
                 model_type="svm",
@@ -173,7 +210,6 @@ class SVMModel:
                 input_example=X_test[:1] if X_test is not None else None,
             )
 
-            # Log evaluation metrics if test data provided
             if X_test is not None and y_test is not None:
                 assert self.model is not None
                 from sklearn.metrics import accuracy_score  # type: ignore
@@ -190,15 +226,52 @@ class SVMModel:
                 )
                 mlflow.log_metric("f1", f1_score(y_test, y_pred, zero_division="warn"))
 
-            # Set standardized tags
             set_standard_tags(
                 model_type="svm",
                 dataset_version=dataset_version,
                 preprocessing_config=preprocessing_config,
                 framework="sklearn",
             )
+            return active_run.info.run_id
+        else:
+            with mlflow.start_run(run_name=run_name) as run:
+                for key, value in self.params.items():
+                    mlflow.log_param(key, value)
 
-            return run.info.run_id
+                log_model_artifact(
+                    model=self.model,
+                    model_type="svm",
+                    framework="sklearn",
+                    artifact_path="model",
+                    input_example=X_test[:1] if X_test is not None else None,
+                )
+
+                if X_test is not None and y_test is not None:
+                    assert self.model is not None
+                    from sklearn.metrics import accuracy_score  # type: ignore
+                    from sklearn.metrics import f1_score, precision_score, recall_score
+
+                    y_pred = self.predict(X_test)
+
+                    mlflow.log_metric("accuracy", accuracy_score(y_test, y_pred))
+                    mlflow.log_metric(
+                        "precision",
+                        precision_score(y_test, y_pred, zero_division="warn"),
+                    )
+                    mlflow.log_metric(
+                        "recall", recall_score(y_test, y_pred, zero_division="warn")
+                    )
+                    mlflow.log_metric(
+                        "f1", f1_score(y_test, y_pred, zero_division="warn")
+                    )
+
+                set_standard_tags(
+                    model_type="svm",
+                    dataset_version=dataset_version,
+                    preprocessing_config=preprocessing_config,
+                    framework="sklearn",
+                )
+                return run.info.run_id
 
     def save_model(self, path):
         """Save model to disk."""
@@ -256,11 +329,12 @@ class RandomForestModel:
         """Log model to MLFlow."""
         mlflow.set_experiment(experiment_name)
 
-        with mlflow.start_run(run_name=run_name) as run:
+        active_run = mlflow.active_run()
+        if active_run:
+            # Log to existing active run without starting a new one
             for key, value in self.params.items():
                 mlflow.log_param(key, value)
 
-            # Log model
             log_model_artifact(
                 model=self.model,
                 model_type="random_forest",
@@ -269,7 +343,6 @@ class RandomForestModel:
                 input_example=X_test[:1] if X_test is not None else None,
             )
 
-            # Log evaluation metrics if test data provided
             if X_test is not None and y_test is not None:
                 assert self.model is not None
                 from sklearn.metrics import accuracy_score  # type: ignore
@@ -286,15 +359,52 @@ class RandomForestModel:
                 )
                 mlflow.log_metric("f1", f1_score(y_test, y_pred, zero_division="warn"))
 
-            # Set standardized tags
             set_standard_tags(
                 model_type="random_forest",
                 dataset_version=dataset_version,
                 preprocessing_config=preprocessing_config,
                 framework="sklearn",
             )
+            return active_run.info.run_id
+        else:
+            with mlflow.start_run(run_name=run_name) as run:
+                for key, value in self.params.items():
+                    mlflow.log_param(key, value)
 
-            return run.info.run_id
+                log_model_artifact(
+                    model=self.model,
+                    model_type="random_forest",
+                    framework="sklearn",
+                    artifact_path="model",
+                    input_example=X_test[:1] if X_test is not None else None,
+                )
+
+                if X_test is not None and y_test is not None:
+                    assert self.model is not None
+                    from sklearn.metrics import accuracy_score  # type: ignore
+                    from sklearn.metrics import f1_score, precision_score, recall_score
+
+                    y_pred = self.predict(X_test)
+
+                    mlflow.log_metric("accuracy", accuracy_score(y_test, y_pred))
+                    mlflow.log_metric(
+                        "precision",
+                        precision_score(y_test, y_pred, zero_division="warn"),
+                    )
+                    mlflow.log_metric(
+                        "recall", recall_score(y_test, y_pred, zero_division="warn")
+                    )
+                    mlflow.log_metric(
+                        "f1", f1_score(y_test, y_pred, zero_division="warn")
+                    )
+
+                set_standard_tags(
+                    model_type="random_forest",
+                    dataset_version=dataset_version,
+                    preprocessing_config=preprocessing_config,
+                    framework="sklearn",
+                )
+                return run.info.run_id
 
     def save_model(self, path):
         """Save model to disk."""
@@ -361,11 +471,12 @@ class XGBoostModel:
         """Log model to MLFlow."""
         mlflow.set_experiment(experiment_name)
 
-        with mlflow.start_run(run_name=run_name) as run:
+        active_run = mlflow.active_run()
+        if active_run:
+            # Log to existing active run without starting a new one
             for key, value in self.params.items():
                 mlflow.log_param(key, value)
 
-            # Log model
             log_model_artifact(
                 model=self.model,
                 model_type="xgboost",
@@ -374,7 +485,6 @@ class XGBoostModel:
                 input_example=X_test[:1] if X_test is not None else None,
             )
 
-            # Log evaluation metrics if test data provided
             if X_test is not None and y_test is not None:
                 assert self.model is not None
                 from sklearn.metrics import accuracy_score  # type: ignore
@@ -391,15 +501,52 @@ class XGBoostModel:
                 )
                 mlflow.log_metric("f1", f1_score(y_test, y_pred, zero_division="warn"))
 
-            # Set standardized tags
             set_standard_tags(
                 model_type="xgboost",
                 dataset_version=dataset_version,
                 preprocessing_config=preprocessing_config,
                 framework="xgboost",
             )
+            return active_run.info.run_id
+        else:
+            with mlflow.start_run(run_name=run_name) as run:
+                for key, value in self.params.items():
+                    mlflow.log_param(key, value)
 
-            return run.info.run_id
+                log_model_artifact(
+                    model=self.model,
+                    model_type="xgboost",
+                    framework="xgboost",
+                    artifact_path="model",
+                    input_example=X_test[:1] if X_test is not None else None,
+                )
+
+                if X_test is not None and y_test is not None:
+                    assert self.model is not None
+                    from sklearn.metrics import accuracy_score  # type: ignore
+                    from sklearn.metrics import f1_score, precision_score, recall_score
+
+                    y_pred = self.predict(X_test)
+
+                    mlflow.log_metric("accuracy", accuracy_score(y_test, y_pred))
+                    mlflow.log_metric(
+                        "precision",
+                        precision_score(y_test, y_pred, zero_division="warn"),
+                    )
+                    mlflow.log_metric(
+                        "recall", recall_score(y_test, y_pred, zero_division="warn")
+                    )
+                    mlflow.log_metric(
+                        "f1", f1_score(y_test, y_pred, zero_division="warn")
+                    )
+
+                set_standard_tags(
+                    model_type="xgboost",
+                    dataset_version=dataset_version,
+                    preprocessing_config=preprocessing_config,
+                    framework="xgboost",
+                )
+                return run.info.run_id
 
     def save_model(self, path):
         """Save model to disk."""
