@@ -14,12 +14,14 @@ from typing import Any, Dict, List, Optional, Tuple
 
 import mlflow
 import numpy as np
+import pandas as pd
 
 from .evaluation import compute_metrics
 from .experiment_tracker import (
     get_or_create_family_experiment,
     set_standard_tags,
     log_model_artifact,
+    log_predictions,
 )
 
 # Local imports
@@ -146,6 +148,7 @@ class Trainer:
                 transformer.model_name
             )
             transformer.build_model()
+            transformer.load_tokenizer()  # Load tokenizer for later artifact logging
             # Store both the wrapper and the raw model
             self.transformer_model = transformer
             self.model = transformer.model
@@ -251,6 +254,29 @@ class Trainer:
                     if isinstance(value, (int, float)):
                         metrics[key] = float(value)
 
+        # Log to MLflow if enabled
+        if self.mlflow_enabled:
+            # Map metric names to consistent scheme
+            if "training_loss" in metrics:
+                mlflow.log_metric("train_loss", metrics["training_loss"])
+            if "total_steps" in metrics:
+                mlflow.log_metric("train_steps", metrics["total_steps"])
+            # Any metric starting with 'eval_' becomes 'val_'
+            for key in list(metrics.keys()):
+                if key.startswith("eval_"):
+                    val_key = "val_" + key[5:]
+                    mlflow.log_metric(val_key, metrics[key])
+                elif key not in ("training_loss", "total_steps"):
+                    mlflow.log_metric(key, metrics[key])
+            # Log model artifact
+            log_model_artifact(
+                self.model,
+                model_type=self.model_type_str,
+                framework="transformers",
+                artifact_path="model",
+                tokenizer=self.transformer_model.tokenizer,
+            )
+
         return metrics
 
     def train(
@@ -303,6 +329,8 @@ class Trainer:
         if self.model is None:
             raise RuntimeError("Model has not been trained yet")
 
+        predictions_df = None  # To store predictions for logging
+
         if self.model_type == "classical":
             if not isinstance(test_dataset, tuple):
                 raise ValueError(
@@ -311,6 +339,12 @@ class Trainer:
             X_test, y_test = test_dataset
             y_pred = self.model.predict(X_test)
             metrics = compute_metrics(y_test, y_pred)
+            predictions_df = pd.DataFrame(
+                {
+                    "true_label": y_test,
+                    "predicted_label": y_pred,
+                }
+            )
         elif self.model_type == "transformer":
             if not TORCH_AVAILABLE:
                 raise RuntimeError("Transformer evaluation requires PyTorch")
@@ -336,6 +370,12 @@ class Trainer:
                     all_preds.extend(preds.cpu().numpy())
                     all_labels.extend(batch["labels"].cpu().numpy())
             metrics = compute_metrics(np.array(all_labels), np.array(all_preds))
+            predictions_df = pd.DataFrame(
+                {
+                    "true_label": all_labels,
+                    "predicted_label": all_preds,
+                }
+            )
         else:
             raise ValueError(f"Unsupported model_type: {self.model_type}")
 
@@ -343,5 +383,11 @@ class Trainer:
             with mlflow.start_run():
                 for k, v in metrics.items():
                     mlflow.log_metric(f"test_{k}", v)
+                if predictions_df is not None:
+                    log_predictions(
+                        predictions_df,
+                        artifact_path="predictions",
+                        filename="predictions.csv",
+                    )
 
         return metrics
