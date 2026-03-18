@@ -4,7 +4,7 @@ Hyperparameter optimization framework using Optuna with MLflow integration.
 Provides automated hyperparameter search across transformer and classical models.
 """
 
-from typing import Any, Callable, Dict, Optional, Protocol, Type, cast
+from typing import Any, Dict, Optional, Protocol, Type, cast
 
 import mlflow
 import optuna
@@ -781,7 +781,6 @@ def optimize_transformer_model_ray(
     # Lazy import Ray to make it optional
     try:
         from ray import tune  # type: ignore
-        from ray.tune import ExperimentAnalysis  # type: ignore
         from ray.tune.search import ConcurrencyLimiter  # type: ignore
         from ray.tune.search.hyperopt import HyperoptSearch  # type: ignore
     except ImportError as e:
@@ -904,7 +903,6 @@ def optimize_classical_model_ray(
     # Lazy import Ray to make it optional
     try:
         from ray import tune  # type: ignore
-        from ray.tune import ExperimentAnalysis  # type: ignore
         from ray.tune.search import ConcurrencyLimiter  # type: ignore
         from ray.tune.search.hyperopt import HyperoptSearch  # type: ignore
     except ImportError as e:
