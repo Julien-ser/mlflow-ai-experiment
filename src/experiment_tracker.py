@@ -138,7 +138,8 @@ def log_transformers_model(
         input_example = "Sample text for classification"
 
     mlflow_transformers_log_model(
-        transformers_model={"model": model, "tokenizer": tokenizer},
+        transformers_model=model,
+        tokenizer=tokenizer,
         artifact_path=artifact_path,
         task=task,
         input_example=input_example,
