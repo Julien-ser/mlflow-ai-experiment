@@ -53,14 +53,15 @@ def get_or_create_family_experiment(config: dict, model_family: str) -> Experime
         )
 
     experiment_name = family_experiments[model_family]
-    artifact_location = config["experiment"].get("artifact_location", "mlartifacts")
+    experiment_config = config.get("experiment", {})
+    artifact_location = experiment_config.get("artifact_location", "mlartifacts")
 
     # Try to get existing experiment
     experiment = mlflow.get_experiment_by_name(experiment_name)
 
     if experiment is None:
         # Create new experiment with base tags from config
-        base_tags = config["experiment"].get("tags", {})
+        base_tags = experiment_config.get("tags", {})
         experiment_id = mlflow.create_experiment(
             name=experiment_name,
             artifact_location=artifact_location,
