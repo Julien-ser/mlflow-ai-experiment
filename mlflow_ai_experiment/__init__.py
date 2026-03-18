@@ -32,4 +32,5 @@ __all__ = [
     "log_predictions",
     "set_standard_tags",
     "setup_mlflow_tracking",
+    "experiment_tracker",
 ]
