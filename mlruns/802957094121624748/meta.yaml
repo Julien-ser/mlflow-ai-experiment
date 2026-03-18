@@ -1,0 +1,7 @@
+artifact_location: /home/julien/Desktop/Free-Wiggum-opencode/projects/mlflow-ai-experiment/mlruns
+creation_time: 1773798455744
+experiment_id: '802957094121624748'
+last_update_time: 1773798455744
+lifecycle_stage: active
+name: imdb_sentiment_analysis_transformers
+workspace: default
