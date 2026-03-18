@@ -205,9 +205,14 @@ class TransformerModel:
 
         if labels is not None:
             if self.backend == "tensorflow":
-                import tensorflow as tf
+                if TF_AVAILABLE:
+                    import tensorflow as tf  # type: ignore
 
-                encoding["labels"] = tf.constant(labels)
+                    encoding["labels"] = tf.constant(labels)
+                else:
+                    raise ImportError(
+                        "TensorFlow is not installed. Please install tensorflow to use the tensorflow backend."
+                    )
             else:
                 encoding["labels"] = torch.tensor(labels)
 
@@ -269,9 +274,14 @@ class TransformerModel:
                 )
             # Handle mixed precision: check for fp16 flag, set policy, and remove from args
             if args.pop("fp16", False):
-                import tensorflow as tf
+                if TF_AVAILABLE:
+                    import tensorflow as tf  # type: ignore
 
-                tf.keras.mixed_precision.set_global_policy("mixed_float16")
+                    tf.keras.mixed_precision.set_global_policy("mixed_float16")
+                else:
+                    raise ImportError(
+                        "TensorFlow is not installed. Please install tensorflow to use the tensorflow backend."
+                    )
             from transformers import TFTrainer, TFTrainingArguments  # type: ignore
 
             TrainerClass = TFTrainer
