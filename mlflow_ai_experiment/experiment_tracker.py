@@ -114,9 +114,11 @@ def log_sklearn_model(
     import mlflow.sklearn as mlflow_sklearn
 
     if input_example is not None:
-        mlflow_sklearn.log_model(model, name=artifact_path, input_example=input_example)
+        mlflow_sklearn.log_model(
+            model, artifact_path=artifact_path, input_example=input_example
+        )
     else:
-        mlflow_sklearn.log_model(model, name=artifact_path)
+        mlflow_sklearn.log_model(model, artifact_path=artifact_path)
 
 
 def log_transformers_model(
@@ -135,7 +137,7 @@ def log_transformers_model(
     mlflow_transformers_log_model(
         transformers_model=model,
         tokenizer=tokenizer,
-        name=artifact_path,
+        artifact_path=artifact_path,
         task=task,
         input_example=input_example,
     )
