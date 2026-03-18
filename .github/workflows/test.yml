@@ -42,7 +42,7 @@ jobs:
       run: |
         if [ -d tests ]; then
           pip install pytest pytest-cov
-          pytest tests/ -v --cov=src
+           pytest tests/ -v --cov=mlflow_ai_experiment
         else
           echo "No tests directory found - skipping"
         fi
