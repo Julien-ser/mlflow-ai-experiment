@@ -12,7 +12,7 @@ project_root = os.path.dirname(os.path.dirname(__file__))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-from src.data_loader import load_and_log_dataset
+from src.data_loader import load_and_log_dataset  # noqa: E402
 
 if __name__ == "__main__":
     print("Preparing IMDB dataset with MLFlow logging...")
@@ -26,10 +26,10 @@ if __name__ == "__main__":
         },
     )
 
-    print(f"\nDataset prepared successfully!")
+    print("\nDataset prepared successfully!")
     print(f"Train samples: {len(train_df)}")
     print(f"Validation samples: {len(val_df)}")
     print(f"Test samples: {len(test_df)}")
-    print(f"\nFiles saved to data/")
-    print(f"Version manifest created at data/version_manifest.yaml")
-    print(f"Dataset logged to MLFlow")
+    print("\nFiles saved to data/")
+    print("Version manifest created at data/version_manifest.yaml")
+    print("Dataset logged to MLFlow")

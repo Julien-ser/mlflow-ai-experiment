@@ -18,9 +18,9 @@ project_root = os.path.dirname(os.path.dirname(__file__))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-from src.preprocessing import preprocess_classical, clean_text
-from src.tokenizers import TransformerTokenizer
-from src.data_loader import load_imdb_dataset
+from src.preprocessing import clean_text  # noqa: E402
+from src.tokenizers import TransformerTokenizer  # noqa: E402
+from src.data_loader import load_imdb_dataset  # noqa: E402
 
 
 def get_memory_usage():
@@ -138,7 +138,6 @@ def benchmark_classical_preprocessing(
             subset_val["cleaned_text"] = subset_val["text"].apply(clean_text)
 
             cleaning_time = time.time() - start_time
-            cleaning_memory = get_memory_usage() - start_memory
 
             # Create TF-IDF features
             from sklearn.feature_extraction.text import TfidfVectorizer
@@ -152,7 +151,6 @@ def benchmark_classical_preprocessing(
             )
 
             X_train = vectorizer.fit_transform(subset_train["cleaned_text"].tolist())
-            X_val = vectorizer.transform(subset_val["cleaned_text"].tolist())
 
             total_time = time.time() - start_time
             total_memory = get_memory_usage() - start_memory

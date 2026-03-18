@@ -7,16 +7,14 @@ import sys
 import os
 import pandas as pd
 import yaml
-import torch
 
 # Add src to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 from src.data_loader import load_imdb_dataset  # type: ignore
-from src.models.transformers import TransformerModel, create_transformer_model  # type: ignore
+from src.models.transformers import create_transformer_model  # type: ignore
 import mlflow
 from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
-import numpy as np
 import time
 
 
@@ -228,7 +226,7 @@ def main():
             continue
 
     # Generate comparison table
-    print(f"\n[4/5] Generating comparison summary...")
+    print("\n[4/5] Generating comparison summary...")
     print("\n" + "=" * 80)
     print("TRANSFORMER MODELS COMPARISON SUMMARY")
     print("=" * 80)

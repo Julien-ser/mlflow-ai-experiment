@@ -11,18 +11,15 @@ import pandas as pd
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
 from src.data_loader import load_imdb_dataset  # type: ignore
-from src.preprocessing import preprocess_dataset, get_tfidf_features  # type: ignore
+from src.preprocessing import preprocess_dataset  # type: ignore
 from src.models.classical import (  # type: ignore
     LogisticRegressionModel,
     SVMModel,
     RandomForestModel,
     XGBoostModel,
-    create_model,
 )
 import mlflow
-from sklearn.metrics import classification_report, confusion_matrix
-import numpy as np
-import joblib
+from sklearn.metrics import classification_report
 
 
 def train_and_evaluate_model(
@@ -196,7 +193,7 @@ def main():
         all_metrics.append(metrics)
 
     # Generate comparison table
-    print(f"\n[4/4] Generating comparison summary...")
+    print("\n[4/4] Generating comparison summary...")
     print("\n" + "=" * 80)
     print("MODEL COMPARISON SUMMARY")
     print("=" * 80)

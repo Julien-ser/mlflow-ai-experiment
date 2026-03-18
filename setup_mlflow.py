@@ -4,7 +4,6 @@ MLFlow Tracking Setup Script
 Initializes MLflow tracking infrastructure for the experiment tracking project.
 """
 
-import os
 import yaml  # type: ignore
 import mlflow
 from mlflow.entities import Experiment  # type: ignore
@@ -71,7 +70,7 @@ def initialize_mlflow() -> "Experiment":
     setup_mlflow_tracking(config)
     experiment = get_or_create_experiment(config)
 
-    print(f"\n✓ MLflow initialization complete!")
+    print("\n✓ MLflow initialization complete!")
     print(f"  - Tracking URI: {mlflow.get_tracking_uri()}")
     print(f"  - Experiment: {experiment.name}")
     print(f"  - Artifact Location: {experiment.artifact_location}")

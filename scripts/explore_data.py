@@ -4,7 +4,6 @@ Run this script to generate exploration statistics and visualizations.
 """
 
 import pandas as pd  # type: ignore
-import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns  # type: ignore
 from collections import Counter
@@ -209,7 +208,7 @@ def generate_summary(
     with open(output_path, "w") as f:
         json.dump(summary, f, indent=2)
 
-    print(f"\n=== DATASET SUMMARY ===")
+    print("\n=== DATASET SUMMARY ===")
     print(f"Total dataset size: {summary['total_samples']:,} samples")
     print(
         f"Split: {summary['train_samples']:,} train / {summary['val_samples']:,} val / {summary['test_samples']:,} test"
