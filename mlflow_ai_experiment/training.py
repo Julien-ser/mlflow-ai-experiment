@@ -75,7 +75,7 @@ class Trainer:
         # MLflow setup
         self.mlflow_enabled = config.get("mlflow_tracking", True)
         if self.mlflow_enabled:
-            mlflow.set_tracking_uri(config.get("mlflow_uri", "mlruns"))
+            mlflow.set_tracking_uri(config.get("mlflow_uri", "sqlite:///mlflow.db"))
             experiment_name = config.get("mlflow_experiment_name", "experiment")
             mlflow.set_experiment(experiment_name)
 
