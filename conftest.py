@@ -6,10 +6,9 @@ actionable within this project's control.
 """
 
 import sys
+import warnings
 
 print("CONFTEST LOADED", file=sys.stderr)
-
-import warnings
 
 # Filter out torch.jit.script DeprecationWarning for Python 3.14+
 # This must be set before transformers is imported (which happens in test modules)
