@@ -4,7 +4,7 @@ Hyperparameter optimization framework using Optuna with MLflow integration.
 Provides automated hyperparameter search across transformer and classical models.
 """
 
-from typing import Any, Dict, Optional, Protocol, Type
+from typing import Any, Dict, Optional, Protocol, Type, cast
 
 import mlflow
 import optuna
@@ -208,10 +208,10 @@ def objective_classical(
 
     # Create and train model
     model_class: Type[ClassicalModel] = {
-        "logistic_regression": LogisticRegressionModel,
-        "svm": SVMModel,
-        "random_forest": RandomForestModel,
-        "xgboost": XGBoostModel,
+        "logistic_regression": cast(Type[ClassicalModel], LogisticRegressionModel),
+        "svm": cast(Type[ClassicalModel], SVMModel),
+        "random_forest": cast(Type[ClassicalModel], RandomForestModel),
+        "xgboost": cast(Type[ClassicalModel], XGBoostModel),
     }[model_type]
 
     model: Any = model_class(params=params)
