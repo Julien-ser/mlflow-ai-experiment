@@ -244,7 +244,7 @@ Comprehensive utilities to log data information to MLFlow:
 
 ### Usage Example
 ```python
-from src.data_loader import load_and_log_dataset
+from mlflow_ai_experiment.data_loader import load_and_log_dataset
 
 # Load data and automatically log to MLFlow with versioning
 train_df, val_df, test_df = load_and_log_dataset(

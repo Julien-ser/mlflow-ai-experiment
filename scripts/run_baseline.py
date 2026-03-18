@@ -10,9 +10,9 @@ project_root = os.path.dirname(os.path.dirname(__file__))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-from src.baseline import BaselineModel  # noqa: E402
-from src.data_loader import load_imdb_dataset  # noqa: E402
-from src.preprocessing import preprocess_dataset  # noqa: E402
+from mlflow_ai_experiment.baseline import BaselineModel  # noqa: E402
+from mlflow_ai_experiment.data_loader import load_imdb_dataset  # noqa: E402
+from mlflow_ai_experiment.preprocessing import preprocess_dataset  # noqa: E402
 
 
 def main():

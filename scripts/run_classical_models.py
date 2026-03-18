@@ -9,15 +9,15 @@ import sys
 import pandas as pd
 
 # Add src to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "mlflow_ai_experiment"))
 
 import mlflow
 from sklearn.metrics import classification_report
 
-from src.data_loader import load_imdb_dataset  # type: ignore
-from src.models.classical import LogisticRegressionModel  # type: ignore
-from src.models.classical import RandomForestModel, SVMModel, XGBoostModel
-from src.preprocessing import preprocess_dataset  # type: ignore
+from mlflow_ai_experiment.data_loader import load_imdb_dataset  # type: ignore
+from mlflow_ai_experiment.models.classical import LogisticRegressionModel  # type: ignore
+from mlflow_ai_experiment.models.classical import RandomForestModel, SVMModel, XGBoostModel
+from mlflow_ai_experiment.preprocessing import preprocess_dataset  # type: ignore
 from experiment_tracker import load_config, get_or_create_family_experiment
 
 config = load_config()

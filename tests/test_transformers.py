@@ -4,7 +4,7 @@ Tests for transformer model implementations.
 
 import pytest
 import torch
-from src.models.transformers import (
+from mlflow_ai_experiment.models.transformers import (
     TransformerModel,
     BERTModel,
     RoBERTaModel,

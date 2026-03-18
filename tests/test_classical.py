@@ -5,7 +5,7 @@ Tests for classical ML model implementations.
 import pytest
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
-from src.models.classical import (
+from mlflow_ai_experiment.models.classical import (
     LogisticRegressionModel,
     SVMModel,
     RandomForestModel,

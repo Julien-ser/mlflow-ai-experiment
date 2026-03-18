@@ -12,7 +12,7 @@ project_root = os.path.dirname(os.path.dirname(__file__))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
-from src.data_loader import load_and_log_dataset  # noqa: E402
+from mlflow_ai_experiment.data_loader import load_and_log_dataset  # noqa: E402
 
 if __name__ == "__main__":
     print("Preparing IMDB dataset with MLFlow logging...")

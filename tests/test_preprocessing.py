@@ -7,14 +7,14 @@ import pandas as pd
 import torch
 
 
-from src.preprocessing import (
+from mlflow_ai_experiment.preprocessing import (
     clean_text,
     create_tfidf_features,
     preprocess_dataset,
     preprocess_classical,
     preprocess_transformer,
 )
-from src.tokenizers import TransformerTokenizer
+from mlflow_ai_experiment.tokenizers import TransformerTokenizer
 
 
 class TestCleanText:
