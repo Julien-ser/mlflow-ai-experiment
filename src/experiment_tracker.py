@@ -19,7 +19,7 @@ import joblib
 
 def load_config(config_path: str = "config.yaml") -> dict:
     """Load configuration from YAML file."""
-    import yaml
+    import yaml  # type: ignore
 
     with open(config_path, "r") as f:
         config = yaml.safe_load(f)
