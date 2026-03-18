@@ -1,0 +1,86 @@
+# Hyperparameter search spaces for classical ML models
+
+search_spaces:
+  logistic_regression:
+    C:
+      type: float
+      low: 1.0e-3
+      high: 10.0
+      log: true
+      description: "Inverse of regularization strength"
+    
+    max_iter:
+      type: int
+      low: 500
+      high: 2000
+      description: "Maximum number of iterations"
+    
+    solver:
+      type: categorical
+      choices: ["liblinear", "lbfgs"]
+      description: "Solver algorithm"
+  
+  svm:
+    C:
+      type: float
+      low: 1.0e-3
+      high: 10.0
+      log: true
+      description: "Regularization parameter"
+    
+    max_iter:
+      type: int
+      low: 1000
+      high: 5000
+      description: "Maximum number of iterations"
+  
+  random_forest:
+    n_estimators:
+      type: int
+      low: 50
+      high: 300
+      description: "Number of trees"
+    
+    max_depth:
+      type: int
+      low: 5
+      high: 30
+      description: "Maximum depth of trees"
+    
+    min_samples_split:
+      type: int
+      low: 2
+      high: 10
+      description: "Minimum samples required to split"
+  
+  xgboost:
+    n_estimators:
+      type: int
+      low: 50
+      high: 300
+      description: "Number of boosting rounds"
+    
+    max_depth:
+      type: int
+      low: 3
+      high: 10
+      description: "Maximum tree depth"
+    
+    learning_rate:
+      type: float
+      low: 0.01
+      high: 0.3
+      log: true
+      description: "Learning rate (eta)"
+    
+    subsample:
+      type: float
+      low: 0.6
+      high: 1.0
+      description: "Fraction of samples for training each tree"
+    
+    colsample_bytree:
+      type: float
+      low: 0.6
+      high: 1.0
+      description: "Fraction of features for each tree"
