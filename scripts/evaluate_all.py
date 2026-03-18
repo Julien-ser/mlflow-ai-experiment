@@ -17,12 +17,7 @@ from typing import Dict, List, Any, Optional
 import mlflow
 import numpy as np
 import pandas as pd
-from sklearn.metrics import confusion_matrix
-
 from mlflow_ai_experiment.evaluation import (
-    compute_metrics,
-    measure_inference_latency,
-    get_model_size,
     evaluate_model,
 )
 
@@ -39,12 +34,12 @@ def load_test_data(test_data_path: str) -> tuple:
             return df["text"].tolist(), np.array(df["label"])
         elif "X_test" in df.columns and "y_test" in df.columns:
             # Preprocessed features
-            X_test = np.vstack(df["X_test"].values)
+            X_test = np.vstack(df["X_test"].tolist())
             y_test = np.array(df["y_test"])
             return X_test, y_test
         else:
             raise ValueError(
-                f"CSV must contain 'text'/'label' or 'X_test'/'y_test' columns"
+                "CSV must contain 'text'/'label' or 'X_test'/'y_test' columns"
             )
 
     # Try numpy files
@@ -128,15 +123,18 @@ def evaluate_all_models(
     # Determine which runs to evaluate
     if run_ids is None and experiment_name is not None:
         print(f"Querying runs from experiment: {experiment_name}")
+        experiment = mlflow.get_experiment_by_name(experiment_name)
+        if experiment is None:
+            raise ValueError(f"Experiment '{experiment_name}' not found")
         runs = mlflow.search_runs(
-            experiment_ids=[
-                mlflow.get_experiment_by_name(experiment_name).experiment_id
-            ],
+            experiment_ids=[experiment.experiment_id],
             filter_string="status = 'FINISHED'",
         )
-        run_ids = runs["run_id"].tolist()
+        run_ids = runs["run_id"].tolist()  # type: ignore[call-overload]
     elif run_ids is None:
         raise ValueError("Either experiment_name or run_ids must be provided")
+
+    assert run_ids is not None
 
     print(f"Found {len(run_ids)} runs to evaluate")
 
@@ -222,7 +220,7 @@ def evaluate_all_models(
 
         # Log summary metrics
         for _, row in df_results.iterrows():
-            prefix = row["model_name"].replace(" ", "_")
+            prefix = str(row["model_name"]).replace(" ", "_")
             for metric in [
                 "accuracy",
                 "precision",
@@ -231,7 +229,7 @@ def evaluate_all_models(
                 "inference_latency_ms",
                 "model_size_mb",
             ]:
-                if metric in row and not pd.isna(row[metric]):
+                if metric in row.index and not bool(pd.isna(row[metric])):
                     mlflow.log_metric(f"{prefix}_{metric}", float(row[metric]))
 
         print(f"✓ Comparison run logged: {comparison_run.info.run_id}")
