@@ -8,6 +8,7 @@ import yaml  # type: ignore
 import mlflow
 from mlflow.entities import Experiment  # type: ignore
 from pathlib import Path
+from typing import Optional
 
 
 def load_config(config_path: str = "config.yaml") -> dict:
@@ -33,7 +34,9 @@ def setup_mlflow_tracking(config: dict) -> None:
         print(f"✓ MLruns directory ready: {mlruns_path}")
 
 
-def get_or_create_experiment(config: dict, experiment_name: str = None) -> "Experiment":
+def get_or_create_experiment(
+    config: dict, experiment_name: Optional[str] = None
+) -> "Experiment":
     """
     Get existing experiment or create new one.
 
@@ -46,6 +49,8 @@ def get_or_create_experiment(config: dict, experiment_name: str = None) -> "Expe
     """
     if experiment_name is None:
         experiment_name = config["experiment"]["name"]
+        if not isinstance(experiment_name, str):
+            raise ValueError("Experiment name must be a string")
 
     artifact_location = config["experiment"].get("artifact_location", "mlruns")
 
