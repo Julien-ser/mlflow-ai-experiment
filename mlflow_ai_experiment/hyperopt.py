@@ -5,6 +5,10 @@ Provides automated hyperparameter search across transformer and classical models
 """
 
 from typing import Any, Dict, Optional, Protocol, Type, cast
+import warnings
+
+# Suppress MLflow's deprecated codecs.open() warning (occurs during model logging)
+warnings.simplefilter("ignore", DeprecationWarning)
 
 import mlflow
 import optuna
