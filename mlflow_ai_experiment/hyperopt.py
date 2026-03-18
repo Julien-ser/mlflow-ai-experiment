@@ -510,6 +510,21 @@ def get_best_params(study: optuna.Study) -> Dict[str, Any]:
 # ==================== Ray Tune Integration ====================
 
 
+def _import_ray_tune():
+    """Import Ray Tune components with a helpful error message if not available."""
+    try:
+        from ray import tune  # type: ignore
+        from ray.tune.search import ConcurrencyLimiter  # type: ignore
+        from ray.tune.search.hyperopt import HyperoptSearch  # type: ignore
+        from ray.tune.schedulers import ASHAScheduler  # type: ignore
+
+        return tune, ConcurrencyLimiter, HyperoptSearch, ASHAScheduler
+    except ImportError as e:
+        raise ImportError(
+            "Ray Tune is required for this function. Install with: pip install 'ray[tune]>=2.7.0'"
+        ) from e
+
+
 def get_transformer_search_space_ray() -> Dict[str, Any]:
     """
     Define search space for transformer models for Ray Tune.
@@ -779,15 +794,7 @@ def optimize_transformer_model_ray(
         Ray Tune ExperimentAnalysis object
     """
     # Lazy import Ray to make it optional
-    try:
-        from ray import tune  # type: ignore
-        from ray.tune.search import ConcurrencyLimiter  # type: ignore
-        from ray.tune.search.hyperopt import HyperoptSearch  # type: ignore
-        from ray.tune.schedulers import ASHAScheduler  # type: ignore
-    except ImportError as e:
-        raise ImportError(
-            "Ray Tune is required for this function. Install with: pip install 'ray[tune]>=2.7.0'"
-        ) from e
+    tune, ConcurrencyLimiter, HyperoptSearch, ASHAScheduler = _import_ray_tune()
 
     if study_name is None:
         study_name = f"{model_type}_ray_hyperopt"
@@ -900,15 +907,7 @@ def optimize_classical_model_ray(
         Ray Tune ExperimentAnalysis object
     """
     # Lazy import Ray to make it optional
-    try:
-        from ray import tune  # type: ignore
-        from ray.tune.search import ConcurrencyLimiter  # type: ignore
-        from ray.tune.search.hyperopt import HyperoptSearch  # type: ignore
-        from ray.tune.schedulers import ASHAScheduler  # type: ignore
-    except ImportError as e:
-        raise ImportError(
-            "Ray Tune is required for this function. Install with: pip install 'ray[tune]>=2.7.0'"
-        ) from e
+    tune, ConcurrencyLimiter, HyperoptSearch, ASHAScheduler = _import_ray_tune()
 
     if study_name is None:
         study_name = f"{model_type}_ray_hyperopt"
