@@ -519,7 +519,7 @@ def get_transformer_search_space_ray() -> Dict[str, Any]:
     """
     # Lazy import Ray to make it optional
     try:
-        from ray import tune
+        from ray import tune  # type: ignore
     except ImportError as e:
         raise ImportError(
             "Ray Tune is required for this function. Install with: pip install 'ray[tune]>=2.7.0'"
@@ -548,7 +548,7 @@ def get_classical_search_space_ray(model_type: str) -> Dict[str, Any]:
     """
     # Lazy import Ray to make it optional
     try:
-        from ray import tune
+        from ray import tune  # type: ignore
     except ImportError as e:
         raise ImportError(
             "Ray Tune is required for this function. Install with: pip install 'ray[tune]>=2.7.0'"
@@ -609,7 +609,7 @@ def _train_transformer_ray(
     """
     # Lazy import Ray to make it optional
     try:
-        from ray import tune
+        from ray import tune  # type: ignore
     except ImportError as e:
         raise ImportError(
             "Ray Tune is required for this function. Install with: pip install 'ray[tune]>=2.7.0'"
@@ -1116,6 +1116,8 @@ def optimize_model(
     model_type: str,
     X_train=None,
     y_train=None,
+    X_val=None,
+    y_val=None,
     train_dataset=None,
     val_dataset=None,
     experiment_name: str = "hyperopt_experiment",
