@@ -4,13 +4,12 @@ Provides functions to log dataset statistics, splits, and preprocessing paramete
 """
 
 import os
+from typing import Any, Dict, List, Optional, Tuple
+
 import mlflow
 import pandas as pd  # type: ignore
-from typing import Dict, Any, Optional, List, Tuple
-from .data_versioning import (
-    calculate_dataset_version,
-    get_dataset_version_string,
-)
+
+from .data_versioning import calculate_dataset_version, get_dataset_version_string
 
 
 def log_dataset_statistics(

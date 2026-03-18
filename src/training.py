@@ -8,13 +8,15 @@ from __future__ import annotations
 
 import importlib.util
 import logging
-from pathlib import Path
 import time
+from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 import joblib  # type: ignore
 import mlflow
 import numpy as np
+
+from .evaluation import compute_metrics
 
 # Local imports
 from .models.classical import (
@@ -24,7 +26,6 @@ from .models.classical import (
     XGBoostModel,
 )
 from .models.transformers import TransformerModel
-from .evaluation import compute_metrics
 
 # Optional PyTorch import
 try:

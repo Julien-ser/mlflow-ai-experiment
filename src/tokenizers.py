@@ -2,9 +2,10 @@
 Tokenization utilities for transformer models.
 """
 
-from transformers import AutoTokenizer
 from typing import Dict, List, Optional
+
 import torch
+from transformers import AutoTokenizer
 
 
 class TransformerTokenizer:

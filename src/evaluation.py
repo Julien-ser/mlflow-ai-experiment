@@ -3,14 +3,15 @@ Evaluation metrics for classification models.
 """
 
 import time
+
+import mlflow
 from sklearn.metrics import (  # type: ignore
     accuracy_score,
+    confusion_matrix,
+    f1_score,
     precision_score,
     recall_score,
-    f1_score,
-    confusion_matrix,
 )
-import mlflow
 
 
 def compute_metrics(y_true, y_pred, y_proba=None):

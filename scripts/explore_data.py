@@ -3,13 +3,15 @@ Data exploration script for IMDB dataset.
 Run this script to generate exploration statistics and visualizations.
 """
 
-import pandas as pd  # type: ignore
-import matplotlib.pyplot as plt
-import seaborn as sns  # type: ignore
-from collections import Counter
-import re
 import json
 import os
+import re
+from collections import Counter
+
+import matplotlib.pyplot as plt
+import mlflow
+import pandas as pd  # type: ignore
+import seaborn as sns  # type: ignore
 
 # Set style for plots
 plt.style.use("seaborn-v0_8-darkgrid")
@@ -225,54 +227,104 @@ def generate_summary(
 
 
 def main():
-    """Run complete data exploration pipeline."""
-    print("=" * 60)
-    print("IMDB DATASET EXPLORATION")
-    print("=" * 60)
+    """Run complete data exploration pipeline with MLFlow tracking."""
+    print("Preparing IMDB dataset with MLFlow logging...")
 
-    # Load data
-    print("\n1. Loading dataset splits...")
-    train_df, val_df, test_df = load_dataset_splits()
-    print(f"   Train: {len(train_df)}, Validation: {len(val_df)}, Test: {len(test_df)}")
+    # Set up MLFlow experiment
+    experiment_name = "data_exploration_imdb"
+    mlflow.set_experiment(experiment_name)
 
-    # Add features
-    print("\n2. Computing text features...")
-    train_df = add_text_features(train_df)
-    val_df = add_text_features(val_df)
-    test_df = add_text_features(test_df)
-    print("   Features added: text_length, word_count, unique_word_count")
+    with mlflow.start_run(run_name="exploration_run") as run:
+        # Log parameters
+        mlflow.log_params(
+            {
+                "dataset": "IMDB movie reviews",
+                "data_dir": "data",
+                "model_type": "data_exploration",
+            }
+        )
 
-    # Print basic info
-    print("\n3. Basic Dataset Info:")
-    print(f"   Columns: {train_df.columns.tolist()}")
-    print(f"   Train set dtypes:\n{train_df.dtypes}")
+        # Set tags
+        mlflow.set_tag("model_type", "data_exploration")
+        mlflow.set_tag("task", "data_exploration")
+        mlflow.set_tag("dataset_version", "v1.0")
+        mlflow.set_tag("preprocessing_config", "standard")
 
-    # Class distribution
-    print("\n4. Class Distribution (Train):")
-    print(train_df["label"].value_counts())
+        # Load data
+        print("\n1. Loading dataset splits...")
+        train_df, val_df, test_df = load_dataset_splits()
+        print(
+            f"   Train: {len(train_df)}, Validation: {len(val_df)}, Test: {len(test_df)}"
+        )
 
-    # Build vocabulary
-    print("\n5. Building vocabulary...")
-    vocab = build_vocabulary(train_df["text"])
-    print(f"   Vocabulary size: {len(vocab):,} unique words")
-    print(f"   Total tokens: {sum(vocab.values()):,}")
-    print("   Top 10 words:", ", ".join([w for w, _ in vocab.most_common(10)]))
+        # Add features
+        print("\n2. Computing text features...")
+        train_df = add_text_features(train_df)
+        val_df = add_text_features(val_df)
+        test_df = add_text_features(test_df)
+        print("   Features added: text_length, word_count, unique_word_count")
 
-    # Data quality checks
-    check_data_quality(train_df, val_df, test_df)
+        # Print basic info
+        print("\n3. Basic Dataset Info:")
+        print(f"   Columns: {train_df.columns.tolist()}")
+        print(f"   Train set dtypes:\n{train_df.dtypes}")
 
-    # Generate plots
-    print("\n6. Generating visualizations...")
-    plot_class_distribution(train_df, val_df, test_df)
-    plot_text_analysis(train_df)
+        # Class distribution
+        print("\n4. Class Distribution (Train):")
+        print(train_df["label"].value_counts())
 
-    # Generate summary
-    print("\n7. Generating summary...")
-    summary = generate_summary(train_df, val_df, test_df, vocab)
+        # Build vocabulary
+        print("\n5. Building vocabulary...")
+        vocab = build_vocabulary(train_df["text"])
+        print(f"   Vocabulary size: {len(vocab):,} unique words")
+        print(f"   Total tokens: {sum(vocab.values()):,}")
+        print("   Top 10 words:", ", ".join([w for w, _ in vocab.most_common(10)]))
 
-    print("\n" + "=" * 60)
-    print("EXPLORATION COMPLETE!")
-    print("=" * 60)
+        # Data quality checks
+        check_data_quality(train_df, val_df, test_df)
+
+        # Generate plots
+        print("\n6. Generating visualizations...")
+        plot_class_distribution(train_df, val_df, test_df)
+        plot_text_analysis(train_df)
+
+        # Generate summary
+        print("\n7. Generating summary...")
+        summary = generate_summary(train_df, val_df, test_df, vocab)
+
+        # Log metrics from summary
+        mlflow.log_metrics(
+            {
+                "total_samples": summary["total_samples"],
+                "train_samples": summary["train_samples"],
+                "val_samples": summary["val_samples"],
+                "test_samples": summary["test_samples"],
+                "vocabulary_size": summary["vocabulary_size"],
+                "total_tokens": summary["total_tokens"],
+                "avg_text_length": summary["avg_text_length"],
+                "avg_word_count": summary["avg_word_count"],
+                "avg_unique_words": summary["avg_unique_words"],
+                "missing_values": summary["missing_values"],
+                "duplicate_texts": summary["duplicate_texts"],
+            }
+        )
+
+        # Log artifacts
+        artifact_paths = [
+            "docs/class_distribution.png",
+            "docs/text_analysis.png",
+            "docs/dataset_summary.json",
+        ]
+        for artifact_path in artifact_paths:
+            if os.path.exists(artifact_path):
+                mlflow.log_artifact(
+                    artifact_path, artifact_path="exploration_artifacts"
+                )
+
+        print("\n" + "=" * 60)
+        print("EXPLORATION COMPLETE!")
+        print(f"MLFlow run ID: {run.info.run_id}")
+        print("=" * 60)
 
 
 if __name__ == "__main__":

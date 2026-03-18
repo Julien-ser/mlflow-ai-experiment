@@ -4,22 +4,22 @@ This serves as a simple, interpretable baseline for text classification.
 """
 
 import os
-import joblib  # type: ignore
-from typing import Tuple, Dict, Any
+from typing import Any, Dict, Tuple
 
+import joblib  # type: ignore
+import mlflow
+import mlflow.sklearn as mlflow_sklearn  # type: ignore
 import numpy as np
 import pandas as pd  # type: ignore
 from sklearn.feature_extraction.text import TfidfVectorizer  # type: ignore
 from sklearn.linear_model import LogisticRegression  # type: ignore
 from sklearn.metrics import (  # type: ignore
     accuracy_score,
+    confusion_matrix,
+    f1_score,
     precision_score,
     recall_score,
-    f1_score,
-    confusion_matrix,
 )
-import mlflow
-import mlflow.sklearn as mlflow_sklearn  # type: ignore
 
 
 class BaselineModel:
@@ -133,6 +133,11 @@ class BaselineModel:
                     "random_state": 42,
                 }
             )
+
+            # Set tags
+            mlflow.set_tag("model_type", "TF-IDF+LogisticRegression")
+            mlflow.set_tag("dataset_version", "v1.0")
+            mlflow.set_tag("preprocessing_config", "standard")
 
             # Train model
             print("Training baseline model...")

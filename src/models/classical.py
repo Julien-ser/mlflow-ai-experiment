@@ -2,16 +2,17 @@
 Classical ML model implementations for text classification.
 """
 
-import numpy as np
-from sklearn.linear_model import LogisticRegression  # type: ignore
-from sklearn.svm import LinearSVC  # type: ignore
-from sklearn.calibration import CalibratedClassifierCV  # type: ignore
-from sklearn.ensemble import RandomForestClassifier  # type: ignore
-import xgboost as xgb
+from typing import Any, Dict, Optional
+
 import joblib  # type: ignore
 import mlflow
 import mlflow.sklearn as mlflow_sklearn  # type: ignore
-from typing import Optional, Any, Dict
+import numpy as np
+import xgboost as xgb
+from sklearn.calibration import CalibratedClassifierCV  # type: ignore
+from sklearn.ensemble import RandomForestClassifier  # type: ignore
+from sklearn.linear_model import LogisticRegression  # type: ignore
+from sklearn.svm import LinearSVC  # type: ignore
 
 
 class LogisticRegressionModel:
@@ -67,12 +68,8 @@ class LogisticRegressionModel:
             # Log evaluation metrics if test data provided
             if X_test is not None and y_test is not None:
                 assert self.model is not None
-                from sklearn.metrics import (  # type: ignore
-                    accuracy_score,
-                    precision_score,
-                    recall_score,
-                    f1_score,
-                )
+                from sklearn.metrics import accuracy_score  # type: ignore
+                from sklearn.metrics import f1_score, precision_score, recall_score
 
                 y_pred = self.predict(X_test)
 
@@ -153,12 +150,8 @@ class SVMModel:
             # Log evaluation metrics if test data provided
             if X_test is not None and y_test is not None:
                 assert self.model is not None
-                from sklearn.metrics import (  # type: ignore
-                    accuracy_score,
-                    precision_score,
-                    recall_score,
-                    f1_score,
-                )
+                from sklearn.metrics import accuracy_score  # type: ignore
+                from sklearn.metrics import f1_score, precision_score, recall_score
 
                 y_pred = self.predict(X_test)
 
@@ -239,12 +232,8 @@ class RandomForestModel:
             # Log evaluation metrics if test data provided
             if X_test is not None and y_test is not None:
                 assert self.model is not None
-                from sklearn.metrics import (  # type: ignore
-                    accuracy_score,
-                    precision_score,
-                    recall_score,
-                    f1_score,
-                )
+                from sklearn.metrics import accuracy_score  # type: ignore
+                from sklearn.metrics import f1_score, precision_score, recall_score
 
                 y_pred = self.predict(X_test)
 
@@ -334,12 +323,8 @@ class XGBoostModel:
             # Log evaluation metrics if test data provided
             if X_test is not None and y_test is not None:
                 assert self.model is not None
-                from sklearn.metrics import (  # type: ignore
-                    accuracy_score,
-                    precision_score,
-                    recall_score,
-                    f1_score,
-                )
+                from sklearn.metrics import accuracy_score  # type: ignore
+                from sklearn.metrics import f1_score, precision_score, recall_score
 
                 y_pred = self.predict(X_test)
 

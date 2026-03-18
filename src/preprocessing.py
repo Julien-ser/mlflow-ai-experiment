@@ -3,10 +3,12 @@ Preprocessing utilities for text classification.
 """
 
 import re
-from typing import Dict, Tuple, Any
-from sklearn.feature_extraction.text import TfidfVectorizer  # type: ignore
-from .tokenizers import TransformerTokenizer
+from typing import Any, Dict, Tuple
+
 import torch
+from sklearn.feature_extraction.text import TfidfVectorizer  # type: ignore
+
+from .tokenizers import TransformerTokenizer
 
 
 def clean_text(text):

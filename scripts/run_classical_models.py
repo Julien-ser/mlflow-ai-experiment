@@ -3,23 +3,21 @@ Script to train and evaluate all classical ML models (Logistic Regression, SVM, 
 This provides a comprehensive comparison baseline against transformer models.
 """
 
-import sys
 import os
+import sys
+
 import pandas as pd
 
 # Add src to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
-from src.data_loader import load_imdb_dataset  # type: ignore
-from src.preprocessing import preprocess_dataset  # type: ignore
-from src.models.classical import (  # type: ignore
-    LogisticRegressionModel,
-    SVMModel,
-    RandomForestModel,
-    XGBoostModel,
-)
 import mlflow
 from sklearn.metrics import classification_report
+
+from src.data_loader import load_imdb_dataset  # type: ignore
+from src.models.classical import LogisticRegressionModel  # type: ignore
+from src.models.classical import RandomForestModel, SVMModel, XGBoostModel
+from src.preprocessing import preprocess_dataset  # type: ignore
 
 
 def train_and_evaluate_model(
@@ -68,7 +66,7 @@ def train_and_evaluate_model(
     }
 
     # Add test metrics
-    from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+    from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
 
     metrics["test_accuracy"] = accuracy_score(y_test, y_pred)
     metrics["test_precision"] = precision_score(y_test, y_pred, zero_division="warn")

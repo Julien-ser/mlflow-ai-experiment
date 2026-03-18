@@ -5,29 +5,30 @@ Supports BERT, RoBERTa, DeBERTa, XLNet with custom classification heads.
 """
 # mypy: ignore-errors
 
-import torch
-from transformers import (
-    AutoTokenizer,
-    BertForSequenceClassification,
-    RobertaForSequenceClassification,
-    DebertaForSequenceClassification,
-    XLNetForSequenceClassification,
-    ElectraForSequenceClassification,
-    AlbertForSequenceClassification,
-    DistilBertForSequenceClassification,
-    GPT2ForSequenceClassification,
-    Trainer,
-    TrainingArguments,
-    EarlyStoppingCallback,
-)
-import numpy as np
+from typing import List, Optional, Union
+
 import mlflow
 import mlflow.transformers  # type: ignore
-from typing import Optional, Union, List
+import numpy as np
+import torch
+from transformers import (
+    AlbertForSequenceClassification,
+    AutoTokenizer,
+    BertForSequenceClassification,
+    DebertaForSequenceClassification,
+    DistilBertForSequenceClassification,
+    EarlyStoppingCallback,
+    ElectraForSequenceClassification,
+    GPT2ForSequenceClassification,
+    RobertaForSequenceClassification,
+    Trainer,
+    TrainingArguments,
+    XLNetForSequenceClassification,
+)
 
 # TensorFlow availability
 try:
-    import tensorflow as tf  # type: ignore  # noqa: F401
+    import tensorflow as tf  # type: ignore  # noqa: F401  # pyright: ignore[reportMissingImports]
 
     TF_AVAILABLE = True
 except ImportError:
@@ -114,7 +115,9 @@ class TransformerModel:
             return self.MODEL_CLASSES[model_type]
         elif self.backend == "tensorflow":
             # Lazy import to avoid top-level dependency
-            from transformers import TFAutoModelForSequenceClassification  # type: ignore
+            from transformers import (
+                TFAutoModelForSequenceClassification,  # type: ignore
+            )
 
             return TFAutoModelForSequenceClassification
         else:
@@ -282,7 +285,8 @@ class TransformerModel:
                     raise ImportError(
                         "TensorFlow is not installed. Please install tensorflow to use the tensorflow backend."
                     )
-            from transformers import TFTrainer, TFTrainingArguments  # type: ignore
+            from transformers import TFTrainer  # type: ignore
+            from transformers import TFTrainingArguments  # type: ignore
 
             TrainerClass = TFTrainer
             ArgsClass = TFTrainingArguments
@@ -549,6 +553,8 @@ class TransformerModel:
             mlflow.set_tag("framework", "transformers")
             mlflow.set_tag("model_type", self._extract_model_type(self.model_name))
             mlflow.set_tag("task", "text_classification")
+            mlflow.set_tag("dataset_version", "v1.0")
+            mlflow.set_tag("preprocessing_config", "standard")
 
             return run.info.run_id
 

@@ -4,8 +4,8 @@ Script to prepare the IMDB dataset.
 This downloads the dataset, creates CSV splits, and logs to MLFlow.
 """
 
-import sys
 import os
+import sys
 
 # Add project root to path for absolute imports
 project_root = os.path.dirname(os.path.dirname(__file__))

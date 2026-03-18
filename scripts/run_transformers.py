@@ -3,19 +3,22 @@ Script to train and evaluate all transformer models (BERT, RoBERTa, DeBERTa, XLN
 This provides comprehensive comparison of state-of-the-art language models.
 """
 
-import sys
 import os
+import sys
+
 import pandas as pd
 import yaml
 
 # Add src to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
 
+import time
+
+import mlflow
+from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_score
+
 from src.data_loader import load_imdb_dataset  # type: ignore
 from src.models.transformers import create_transformer_model  # type: ignore
-import mlflow
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
-import time
 
 
 def load_model_zoo_config(config_path="config/models.yaml"):
@@ -71,7 +74,6 @@ def train_and_evaluate_transformer(
     print("Tokenizing datasets...")
     train_dataset = tokenize_dataset(model, train_texts, train_labels)
     val_dataset = tokenize_dataset(model, val_texts, val_labels)
-    test_dataset = tokenize_dataset(model, test_texts, test_labels)
 
     # Train model
     print("Training model...")
@@ -82,7 +84,6 @@ def train_and_evaluate_transformer(
     # Evaluate on test set
     print("Evaluating on test set...")
     test_preds = model.predict(test_texts)
-    test_proba = model.predict_proba(test_texts)
 
     # Calculate metrics
     test_accuracy = accuracy_score(test_labels, test_preds)
@@ -158,6 +159,8 @@ def train_and_evaluate_transformer(
         mlflow.set_tag("config_name", config_name)
         mlflow.set_tag("model_path", model_path)
         mlflow.set_tag("framework", "transformers")
+        mlflow.set_tag("dataset_version", "v1.0")
+        mlflow.set_tag("preprocessing_config", "standard")
 
         metrics["run_id"] = run.info.run_id
 

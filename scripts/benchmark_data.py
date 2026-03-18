@@ -3,24 +3,25 @@ Data pipeline performance benchmark script.
 Measures data loading times, preprocessing throughput, and memory usage for different batch sizes.
 """
 
-import sys
-import os
-import time
 import gc
-import psutil
+import os
+import sys
+import time
+
+import mlflow
 import pandas as pd
+import psutil
 from datasets import load_dataset
 from sklearn.model_selection import train_test_split
-import mlflow
 
 # Add project root to path for absolute imports
 project_root = os.path.dirname(os.path.dirname(__file__))
 if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
+from src.data_loader import load_imdb_dataset  # noqa: E402
 from src.preprocessing import clean_text  # noqa: E402
 from src.tokenizers import TransformerTokenizer  # noqa: E402
-from src.data_loader import load_imdb_dataset  # noqa: E402
 
 
 def get_memory_usage():
@@ -213,7 +214,6 @@ def benchmark_transformer_preprocessing(
 
             # Take subset of data
             subset_train = train_df.head(batch_size)
-            subset_val = val_df.head(min(batch_size // 10, len(val_df)))
 
             gc.collect()
             start_time = time.time()
