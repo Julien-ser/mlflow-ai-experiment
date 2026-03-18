@@ -279,7 +279,6 @@ class RandomForestModel:
 
             # Set standardized tags
             set_standard_tags(
-                run=run,
                 model_type="random_forest",
                 dataset_version=dataset_version,
                 preprocessing_config=preprocessing_config,
@@ -382,7 +381,6 @@ class XGBoostModel:
 
             # Set standardized tags
             set_standard_tags(
-                run=run,
                 model_type="xgboost",
                 dataset_version=dataset_version,
                 preprocessing_config=preprocessing_config,
