@@ -1,5 +1,6 @@
 README.md
 pyproject.toml
+setup.cfg
 src/mlflow_ai_experiment.egg-info/PKG-INFO
 src/mlflow_ai_experiment.egg-info/SOURCES.txt
 src/mlflow_ai_experiment.egg-info/dependency_links.txt
