@@ -15,6 +15,14 @@ from pathlib import Path
 from typing import Dict, Optional, Any
 import pandas as pd
 import joblib
+import warnings
+
+# Suppress MLflow's UserWarning about Any type hints in Python 3.14+
+warnings.filterwarnings(
+    "ignore",
+    message=r"Any type hint is inferred as AnyType",
+    category=UserWarning,
+)
 
 
 def load_config(config_path: str = "config.yaml") -> dict:
