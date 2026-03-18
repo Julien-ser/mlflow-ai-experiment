@@ -575,7 +575,6 @@ class TransformerModel:
 
             # Set standardized tags
             set_standard_tags(
-                run=run,
                 model_type=self._extract_model_type(self.model_name),
                 dataset_version=dataset_version,
                 preprocessing_config=preprocessing_config,
