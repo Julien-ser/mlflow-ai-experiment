@@ -19,6 +19,7 @@ mlflow_ai_experiment.egg-info/dependency_links.txt
 mlflow_ai_experiment.egg-info/requires.txt
 mlflow_ai_experiment.egg-info/top_level.txt
 tests/test_classical.py
+tests/test_hyperopt.py
 tests/test_preprocessing.py
 tests/test_train.py
 tests/test_transformers.py
