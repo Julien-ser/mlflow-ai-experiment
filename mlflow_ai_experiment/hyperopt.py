@@ -4,7 +4,7 @@ Hyperparameter optimization framework using Optuna with MLflow integration.
 Provides automated hyperparameter search across transformer and classical models.
 """
 
-from typing import Any, Dict, Optional, Protocol, Type, cast
+from typing import TYPE_CHECKING, Any, Dict, Optional, Protocol, Type, cast
 
 import mlflow
 import optuna
