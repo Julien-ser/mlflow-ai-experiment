@@ -10,7 +10,9 @@ import pandas as pd
 import yaml  # type: ignore
 
 # Add src to path
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "mlflow_ai_experiment"))
+sys.path.insert(
+    0, os.path.join(os.path.dirname(__file__), "..", "mlflow_ai_experiment")
+)
 
 import time
 
@@ -19,7 +21,7 @@ from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_sc
 
 from mlflow_ai_experiment.data_loader import load_imdb_dataset  # type: ignore
 from mlflow_ai_experiment.models.transformers import create_transformer_model  # type: ignore
-from experiment_tracker import (
+from mlflow_ai_experiment.experiment_tracker import (
     load_config,
     get_or_create_family_experiment,
     set_standard_tags,

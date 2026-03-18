@@ -1,0 +1,12 @@
+{
+  "include": ["mlflow_ai_experiment", "scripts", "tests"],
+  "exclude": ["**/node_modules", "**/__pycache__", "**/.*", "build", "dist", "*.egg-info", "mlruns", ".pytest_cache", ".ruff_cache", ".coverage"],
+  "reportMissingImports": true,
+  "reportMissingTypeStubs": false,
+  "pythonVersion": "3.11",
+  "pythonPlatform": "Linux",
+  "typeCheckingMode": "basic",
+  "ignore": [
+    "build/**"
+  ]
+}
