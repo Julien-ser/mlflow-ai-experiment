@@ -275,7 +275,7 @@ class Trainer:
 
         # Execute training with or without MLflow run context
         if self.mlflow_enabled:
-            with mlflow.start_run():
+            with mlflow.start_run() as run:
                 mlflow.log_params(self.config)
                 # Set standardized tags
                 set_standard_tags(
@@ -287,6 +287,7 @@ class Trainer:
                     framework="sklearn"
                     if self.model_type == "classical"
                     else "transformers",
+                    run=run,
                 )
                 metrics = train_func(train_dataset, valid_dataset)
         else:
