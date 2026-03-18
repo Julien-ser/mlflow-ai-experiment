@@ -22,7 +22,7 @@ from .models.classical import (
     SVMModel,
     XGBoostModel,
 )
-from .models.transformers import (
+from .models.transformers import (  # type: ignore
     BERTModel,
     DeBERTaModel,
     DistilBERTModel,
@@ -209,8 +209,9 @@ def objective_classical(
     result = model.train(X_train, y_train, X_val, y_val)
 
     # Log to MLflow
+    trial_num = trial.number
     mlflow.set_experiment(experiment_name)
-    with mlflow.start_run(run_name=f"{model_type}_optuna_{trial.number}"):
+    with mlflow.start_run(run_name=f"{model_type}_optuna_{trial_num}"):
         # Log parameters
         for key, value in params.items():
             mlflow.log_param(key, value)
@@ -222,7 +223,7 @@ def objective_classical(
         # Log model
         model.log_to_mlflow(
             experiment_name=experiment_name,
-            run_name=f"{model_type}_optuna_{trial.number}",
+            run_name=f"{model_type}_optuna_{trial_num}",
             X_test=X_val[:1] if hasattr(X_val, "__getitem__") else None,
             y_test=y_val[:1] if hasattr(y_val, "__getitem__") else None,
             dataset_version=dataset_version,
