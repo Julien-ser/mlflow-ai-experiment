@@ -116,17 +116,24 @@ def log_sklearn_model(
     model: Any,
     artifact_path: str = "model",
     input_example: Optional[Any] = None,
-    name: Optional[str] = None,
+    registered_model_name: Optional[str] = None,
 ) -> None:
     """Log a scikit-learn model to MLflow."""
     import mlflow.sklearn as mlflow_sklearn
 
     if input_example is not None:
         mlflow_sklearn.log_model(
-            model, artifact_path=artifact_path, input_example=input_example, name=name
+            model,
+            artifact_path=artifact_path,
+            input_example=input_example,
+            registered_model_name=registered_model_name,
         )
     else:
-        mlflow_sklearn.log_model(model, artifact_path=artifact_path, name=name)
+        mlflow_sklearn.log_model(
+            model,
+            artifact_path=artifact_path,
+            registered_model_name=registered_model_name,
+        )
 
 
 def log_transformers_model(
@@ -135,7 +142,7 @@ def log_transformers_model(
     artifact_path: str = "model",
     task: str = "text-classification",
     input_example: Optional[str] = None,
-    name: Optional[str] = None,
+    registered_model_name: Optional[str] = None,
 ) -> None:
     """Log a transformer model (with tokenizer) to MLflow."""
     from mlflow.transformers import log_model as mlflow_transformers_log_model
@@ -149,7 +156,7 @@ def log_transformers_model(
         artifact_path=artifact_path,
         task=task,
         input_example=input_example,
-        name=name,
+        registered_model_name=registered_model_name,
     )
 
 
