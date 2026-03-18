@@ -8,17 +8,9 @@ Supports BERT, RoBERTa, DeBERTa, XLNet with custom classification heads.
 from typing import List, Optional, Union
 
 import mlflow
-import warnings
-
 import numpy as np
 import torch
-
-# Suppress torch.jit.script deprecation warning for Python 3.14+
-warnings.filterwarnings(
-    "ignore",
-    category=DeprecationWarning,
-    module=r"torch\.jit\._script",
-)
+import warnings
 
 from transformers import (
     AlbertForSequenceClassification,
@@ -36,6 +28,13 @@ from transformers import (
 )
 
 from ..experiment_tracker import set_standard_tags, log_model_artifact
+
+# Suppress torch.jit.script deprecation warning for Python 3.14+
+warnings.filterwarnings(
+    "ignore",
+    category=DeprecationWarning,
+    module=r"torch\.jit\._script",
+)
 
 # TensorFlow availability
 try:
