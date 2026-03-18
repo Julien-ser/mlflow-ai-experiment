@@ -19,6 +19,15 @@ sys.path.insert(
 import mlflow
 
 from mlflow_ai_experiment.data_loader import load_imdb_dataset  # type: ignore
+from mlflow_ai_experiment.experiment_tracker import (
+    load_config,
+    get_or_create_family_experiment,
+)
+from mlflow_ai_experiment.preprocessing import preprocess_dataset
+from mlflow_ai_experiment.hyperopt import (
+    optimize_all_classical,
+    optimize_all_transformers,
+)
 
 config = load_config()
 DATASET_VERSION = config["tags"]["dataset_version"]
@@ -116,7 +125,7 @@ def run_hyperopt_classical(
 ):
     """Run hyperparameter optimization for classical models."""
     print(f"\n{'=' * 80}")
-    print(f"CLASSICAL HYPERPARAMETER OPTIMIZATION")
+    print("CLASSICAL HYPERPARAMETER OPTIMIZATION")
     print(f"Models: {model_types}")
     print(f"Trials per model: {n_trials}")
     print(f"{'=' * 80}")
@@ -129,7 +138,6 @@ def run_hyperopt_classical(
         y_val=y_val,
         experiment_name=experiment_name,
         n_trials=n_trials,
-        timeout=timeout,
         dataset_version=dataset_version,
         preprocessing_config=preprocessing_config,
     )
@@ -156,7 +164,7 @@ def run_hyperopt_transformers(
 ):
     """Run hyperparameter optimization for transformer models."""
     print(f"\n{'=' * 80}")
-    print(f"TRANSFORMER HYPERPARAMETER OPTIMIZATION")
+    print("TRANSFORMER HYPERPARAMETER OPTIMIZATION")
     print(f"Models: {model_types}")
     print(f"Trials per model: {n_trials}")
     print(f"{'=' * 80}")
@@ -167,7 +175,6 @@ def run_hyperopt_transformers(
         val_dataset=val_dataset,
         experiment_name=experiment_name,
         n_trials=n_trials,
-        timeout=timeout,
         dataset_version=dataset_version,
         preprocessing_config=preprocessing_config,
     )
@@ -414,11 +421,12 @@ def main():
             for _, row in summary_df.iterrows():
                 model_name = row["model"]
                 mlflow.log_metric(
-                    f"{model_name}_best_accuracy", row["best_val_accuracy"]
+                    f"{model_name}_best_accuracy", float(row["best_val_accuracy"])
                 )
-                for param in study.best_params.keys():
-                    if param in row:
-                        mlflow.log_param(f"{model_name}_{param}", row[param])
+                # Log hyperparameters (all columns except known metadata)
+                for col in summary_df.columns:
+                    if col not in ["model", "best_val_accuracy", "n_trials"]:
+                        mlflow.log_param(f"{model_name}_{col}", row[col])
             mlflow.log_artifact(summary_path)
             print(f"Summary logged to MLflow run: {run.info.run_id}")
 
