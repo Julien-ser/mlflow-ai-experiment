@@ -116,9 +116,12 @@ def log_sklearn_model(
     """Log a scikit-learn model to MLflow."""
     import mlflow.sklearn as mlflow_sklearn
 
-    mlflow_sklearn.log_model(
-        model, artifact_path=artifact_path, input_example=input_example
-    )
+    if input_example is not None:
+        mlflow_sklearn.log_model(
+            model, artifact_path=artifact_path, input_example=input_example
+        )
+    else:
+        mlflow_sklearn.log_model(model, artifact_path=artifact_path)
 
 
 def log_transformers_model(
@@ -129,22 +132,16 @@ def log_transformers_model(
     input_example: Optional[str] = None,
 ) -> None:
     """Log a transformer model (with tokenizer) to MLflow."""
-    import mlflow.transformers
+    from mlflow.transformers import log_model as mlflow_transformers_log_model
 
     if input_example is None:
         input_example = "Sample text for classification"
 
-    # Infer signature
-    signature = mlflow.models.signature.infer_signature(
-        ["input text"], [{"label": "positive", "score": 0.9}]
-    )
-
-    mlflow.transformers.log_model(
+    mlflow_transformers_log_model(
         transformers_model={"model": model, "tokenizer": tokenizer},
         artifact_path=artifact_path,
         task=task,
         input_example=input_example,
-        signature=signature,
     )
 
 
