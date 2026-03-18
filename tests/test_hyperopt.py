@@ -19,7 +19,7 @@ class TestSearchSpaces:
     """Test search space definitions."""
 
     def test_get_transformer_search_space_bert(self):
-        study = optuna.create_study()
+        study = optuna.create_study(load_if_exists=True)
         trial = study.ask()
         space = get_transformer_search_space(trial, "bert")
         expected_keys = {
@@ -34,7 +34,7 @@ class TestSearchSpaces:
         assert set(space.keys()) == expected_keys
 
     def test_get_transformer_search_space_roberta(self):
-        study = optuna.create_study()
+        study = optuna.create_study(load_if_exists=True)
         trial = study.ask()
         space = get_transformer_search_space(trial, "roberta")
         expected_keys = {
@@ -52,7 +52,7 @@ class TestSearchSpaces:
         "model_type", ["logistic_regression", "svm", "random_forest", "xgboost"]
     )
     def test_get_classical_search_space_all_models(self, model_type):
-        study = optuna.create_study()
+        study = optuna.create_study(load_if_exists=True)
         trial = study.ask()
         space = get_classical_search_space(trial, model_type)
         assert isinstance(space, dict)
