@@ -28,13 +28,13 @@ def temp_mlflow_db(tmp_path):
     os.environ.pop("MLFLOW_EXPERIMENT_NAME", None)
     mlflow.set_tracking_uri(tracking_uri)
     # Reset the tracking client and clear cached experiment ID
-    mlflow.tracking._tracking_service.client = None
-    mlflow.tracking.fluent._active_experiment_id = None
+    mlflow.tracking._tracking_service.client = None  # type: ignore
+    mlflow.tracking.fluent._active_experiment_id = None  # type: ignore
     yield tracking_uri
     # Restore original tracking URI and clear caches
     mlflow.set_tracking_uri(original_uri)
-    mlflow.tracking._tracking_service.client = None
-    mlflow.tracking.fluent._active_experiment_id = None
+    mlflow.tracking._tracking_service.client = None  # type: ignore
+    mlflow.tracking.fluent._active_experiment_id = None  # type: ignore
     # Restore original env vars
     if orig_exp_id is not None:
         os.environ["MLFLOW_EXPERIMENT_ID"] = orig_exp_id
