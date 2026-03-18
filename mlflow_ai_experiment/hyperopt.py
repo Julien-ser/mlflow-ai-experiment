@@ -7,8 +7,8 @@ Provides automated hyperparameter search across transformer and classical models
 from typing import Any, Dict, Optional, Protocol, Type, cast
 import warnings
 
-# Suppress MLflow's deprecated codecs.open() warning (occurs during model logging)
-warnings.simplefilter("ignore", DeprecationWarning)
+# Suppress all DeprecationWarnings globally (third-party library issues like MLflow's codecs.open)
+warnings.filterwarnings("ignore", category=DeprecationWarning)
 
 import mlflow
 import optuna
@@ -236,15 +236,17 @@ def objective_classical(
         mlflow.log_metric("train_accuracy", result["train_accuracy"])
         mlflow.log_metric("val_accuracy", result["val_accuracy"])
 
-        # Log model
-        model.log_to_mlflow(
-            experiment_name=experiment_name,
-            run_name=f"{model_type}_optuna_{trial_num}",
-            X_test=X_val[:1] if hasattr(X_val, "__getitem__") else None,
-            y_test=y_val[:1] if hasattr(y_val, "__getitem__") else None,
-            dataset_version=dataset_version,
-            preprocessing_config=preprocessing_config,
-        )
+        # Log model (suppress MLflow DeprecationWarning)
+        with warnings.catch_warnings():
+            warnings.filterwarnings("ignore", category=DeprecationWarning)
+            model.log_to_mlflow(
+                experiment_name=experiment_name,
+                run_name=f"{model_type}_optuna_{trial_num}",
+                X_test=X_val[:1] if hasattr(X_val, "__getitem__") else None,
+                y_test=y_val[:1] if hasattr(y_val, "__getitem__") else None,
+                dataset_version=dataset_version,
+                preprocessing_config=preprocessing_config,
+            )
 
         # Set standard tags
         set_standard_tags(
