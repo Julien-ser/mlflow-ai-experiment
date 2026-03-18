@@ -1,10 +1,13 @@
 # MLFlow Configuration
 tracking:
   uri: "mlruns"  # Local directory for MLflow tracking data
-  default_experiment: "imdb_sentiment_analysis"
+
+experiments:
+  classical: "imdb_sentiment_analysis_classical"
+  transformers: "imdb_sentiment_analysis_transformers"
 
 experiment:
-  name: "imdb_sentiment_analysis"
+  name: "imdb_sentiment_analysis"  # Default/base experiment
   artifact_location: "mlruns"
   tags:
     project: "mlflow-ai-experiment"
@@ -51,3 +54,7 @@ evaluation:
     - "recall"
     - "inference_latency"
     - "memory_footprint"
+
+tags:
+  dataset_version: "v1.0"
+  preprocessing_config: "standard"

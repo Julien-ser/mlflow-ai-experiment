@@ -19,6 +19,11 @@ from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_sc
 
 from src.data_loader import load_imdb_dataset  # type: ignore
 from src.models.transformers import create_transformer_model  # type: ignore
+from setup_mlflow import load_config, get_or_create_family_experiment
+
+config = load_config()
+DATASET_VERSION = config["tags"]["dataset_version"]
+PREPROCESSING_CONFIG = config["tags"]["preprocessing_config"]
 
 
 def load_model_zoo_config(config_path="config/models.yaml"):
@@ -44,6 +49,8 @@ def train_and_evaluate_transformer(
     test_texts,
     test_labels,
     experiment_name="transformers_comparison",
+    dataset_version: str = DATASET_VERSION,
+    preprocessing_config: str = PREPROCESSING_CONFIG,
 ):
     """
     Train and evaluate a single transformer model with MLflow logging.
@@ -78,7 +85,13 @@ def train_and_evaluate_transformer(
     # Train model
     print("Training model...")
     train_start = time.time()
-    model.train(train_dataset, val_dataset, experiment_name=experiment_name)
+    model.train(
+        train_dataset,
+        val_dataset,
+        experiment_name=experiment_name,
+        dataset_version=dataset_version,
+        preprocessing_config=preprocessing_config,
+    )
     train_time = time.time() - train_start
 
     # Evaluate on test set
@@ -173,8 +186,8 @@ def train_and_evaluate_transformer(
         mlflow.set_tag("config_name", config_name)
         mlflow.set_tag("model_path", model_path)
         mlflow.set_tag("framework", "transformers")
-        mlflow.set_tag("dataset_version", "v1.0")
-        mlflow.set_tag("preprocessing_config", "standard")
+        mlflow.set_tag("dataset_version", dataset_version)
+        mlflow.set_tag("preprocessing_config", preprocessing_config)
 
         # Log predictions artifact
         mlflow.log_artifact(predictions_path, "predictions")
@@ -190,8 +203,13 @@ def main():
     print("TRANSFORMER MODELS TRAINING PIPELINE")
     print("=" * 80)
 
-    # Set MLflow experiment
-    mlflow.set_experiment("transformers_comparison")
+    # Initialize MLflow tracking and get experiment
+    global config, DATASET_VERSION, PREPROCESSING_CONFIG
+    config = load_config()
+    experiment = get_or_create_family_experiment(config, "transformers")
+    mlflow.set_experiment(experiment.name)
+
+    print(f"\nUsing MLflow experiment: {experiment.name}")
 
     # Load model zoo config
     print("\n[1/5] Loading model zoo configuration...")
@@ -237,7 +255,9 @@ def main():
                 val_labels,
                 test_texts,
                 test_labels,
-                experiment_name="transformers_comparison",
+                experiment_name=experiment.name,
+                dataset_version=DATASET_VERSION,
+                preprocessing_config=PREPROCESSING_CONFIG,
             )
             all_metrics.append(metrics)
             trained_models.append((model_type, variant_name, trained_model))

@@ -33,21 +33,32 @@ def setup_mlflow_tracking(config: dict) -> None:
         print(f"✓ MLruns directory ready: {mlruns_path}")
 
 
-def get_or_create_experiment(config: dict) -> "Experiment":
-    """Get existing experiment or create new one."""
+def get_or_create_experiment(config: dict, experiment_name: str = None) -> "Experiment":
+    """
+    Get existing experiment or create new one.
 
-    experiment_name = config["experiment"]["name"]
+    Args:
+        config: Configuration dictionary
+        experiment_name: Optional experiment name. If not provided, uses the default from config.
+
+    Returns:
+        MLflow Experiment object
+    """
+    if experiment_name is None:
+        experiment_name = config["experiment"]["name"]
+
     artifact_location = config["experiment"].get("artifact_location", "mlruns")
 
     # Try to get existing experiment
     experiment = mlflow.get_experiment_by_name(experiment_name)
 
     if experiment is None:
-        # Create new experiment
+        # Create new experiment with base tags from config
+        base_tags = config["experiment"].get("tags", {})
         experiment_id = mlflow.create_experiment(
             name=experiment_name,
             artifact_location=artifact_location,
-            tags=config["experiment"].get("tags", {}),
+            tags=base_tags,
         )
         experiment = mlflow.get_experiment(experiment_id)
         print(f"✓ Created new experiment: {experiment_name} (ID: {experiment_id})")
@@ -57,6 +68,30 @@ def get_or_create_experiment(config: dict) -> "Experiment":
         )
 
     return experiment
+
+
+def get_or_create_family_experiment(config: dict, model_family: str) -> "Experiment":
+    """
+    Get or create experiment for a specific model family.
+
+    Args:
+        config: Configuration dictionary
+        model_family: Model family ('classical' or 'transformers')
+
+    Returns:
+        MLflow Experiment object
+    """
+    family_experiments = config.get("experiments", {})
+    if not family_experiments:
+        raise ValueError("No experiments configured in config['experiments']")
+    if model_family not in family_experiments:
+        raise ValueError(
+            f"Unknown model family: {model_family}. "
+            f"Available families in config: {list(family_experiments.keys())}"
+        )
+
+    experiment_name = family_experiments[model_family]
+    return get_or_create_experiment(config, experiment_name)
 
 
 def initialize_mlflow() -> "Experiment":

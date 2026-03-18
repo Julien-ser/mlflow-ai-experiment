@@ -18,10 +18,11 @@ from src.data_loader import load_imdb_dataset  # type: ignore
 from src.models.classical import LogisticRegressionModel  # type: ignore
 from src.models.classical import RandomForestModel, SVMModel, XGBoostModel
 from src.preprocessing import preprocess_dataset  # type: ignore
+from setup_mlflow import load_config, get_or_create_family_experiment
 
-# MLFlow configuration
-DATASET_VERSION = "v1.0"
-PREPROCESSING_CONFIG = "standard"
+config = load_config()
+DATASET_VERSION = config["tags"]["dataset_version"]
+PREPROCESSING_CONFIG = config["tags"]["preprocessing_config"]
 
 
 def train_and_evaluate_model(
@@ -122,8 +123,12 @@ def main():
     print("CLASSICAL MODELS TRAINING PIPELINE")
     print("=" * 80)
 
-    # Set MLflow experiment
-    mlflow.set_experiment("classical_models_comparison")
+    # Initialize MLflow tracking and get experiment
+    config = load_config()
+    experiment = get_or_create_family_experiment(config, "classical")
+    mlflow.set_experiment(experiment.name)
+
+    print(f"\nUsing MLflow experiment: {experiment.name}")
 
     # Load and preprocess data
     print("\n[1/4] Loading IMDB dataset...")
@@ -208,7 +213,7 @@ def main():
             y_val,
             X_test,
             y_test,
-            experiment_name="classical_models_comparison",
+            experiment_name=experiment.name,
         )
         all_metrics.append(metrics)
 

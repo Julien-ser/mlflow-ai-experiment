@@ -222,7 +222,13 @@ class TransformerModel:
         return encoding
 
     def train(
-        self, train_dataset, eval_dataset=None, experiment_name=None, training_args=None
+        self,
+        train_dataset,
+        eval_dataset=None,
+        experiment_name=None,
+        training_args=None,
+        dataset_version: str = "v1.0",
+        preprocessing_config: str = "standard",
     ):
         """
         Train the transformer model with flexible configuration.
@@ -232,6 +238,8 @@ class TransformerModel:
             eval_dataset: Optional tokenized validation dataset
             experiment_name: Optional MLflow experiment name
             training_args: Optional dict of TrainingArguments overrides
+            dataset_version: Version of the dataset used
+            preprocessing_config: Preprocessing configuration used
 
         Returns:
             Training results
@@ -343,7 +351,12 @@ class TransformerModel:
 
         # Log to MLflow if experiment name provided
         if experiment_name:
-            self.log_to_mlflow(experiment_name, train_result=train_result)
+            self.log_to_mlflow(
+                experiment_name,
+                train_result=train_result,
+                dataset_version=dataset_version,
+                preprocessing_config=preprocessing_config,
+            )
 
         return train_result
 
@@ -480,7 +493,12 @@ class TransformerModel:
         self.build_model()
 
     def log_to_mlflow(
-        self, experiment_name: str, run_name: Optional[str] = None, train_result=None
+        self,
+        experiment_name: str,
+        run_name: Optional[str] = None,
+        train_result=None,
+        dataset_version: str = "v1.0",
+        preprocessing_config: str = "standard",
     ):
         """
         Log model, parameters, and metrics to MLflow.
@@ -489,12 +507,16 @@ class TransformerModel:
             experiment_name: MLflow experiment name
             run_name: Optional run name
             train_result: Optional training results to log as metrics
+            dataset_version: Version of the dataset used
+            preprocessing_config: Preprocessing configuration used
 
         Returns:
             MLflow run ID
         """
         if run_name is None:
             run_name = f"{self._extract_model_type(self.model_name)}_classifier"
+
+        mlflow.set_experiment(experiment_name)
 
         with mlflow.start_run(run_name=run_name) as run:
             # Log parameters
@@ -553,8 +575,8 @@ class TransformerModel:
             mlflow.set_tag("framework", "transformers")
             mlflow.set_tag("model_type", self._extract_model_type(self.model_name))
             mlflow.set_tag("task", "text_classification")
-            mlflow.set_tag("dataset_version", "v1.0")
-            mlflow.set_tag("preprocessing_config", "standard")
+            mlflow.set_tag("dataset_version", dataset_version)
+            mlflow.set_tag("preprocessing_config", preprocessing_config)
 
             return run.info.run_id
 
