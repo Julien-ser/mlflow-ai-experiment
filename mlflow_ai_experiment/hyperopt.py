@@ -190,7 +190,7 @@ def objective_classical(
         "xgboost": XGBoostModel,
     }[model_type]
 
-    model = model_class(params=params)
+    model: Any = model_class(params=params)
     result = model.train(X_train, y_train, X_val, y_val)
 
     # Log to MLflow
