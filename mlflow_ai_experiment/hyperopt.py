@@ -7,8 +7,8 @@ Provides automated hyperparameter search across transformer and classical models
 from typing import Any, Dict, Optional, Protocol, Type, cast
 import warnings
 
-# Suppress all DeprecationWarnings globally (third-party library issues like MLflow's codecs.open)
-warnings.filterwarnings("ignore", category=DeprecationWarning)
+# Suppress MLflow's deprecated codecs.open() warning (occurs during model logging)
+warnings.simplefilter("ignore", DeprecationWarning)
 
 import mlflow
 import optuna
