@@ -2,6 +2,11 @@
 Package initialization for src module.
 """
 
+import warnings
+
+# Suppress MLflow type hint UserWarning (caused by MLflow's use of Any)
+warnings.filterwarnings("ignore", category=UserWarning, module=r"mlflow\.")
+
 from .data_loader import load_imdb_dataset, save_dataset_splits
 from .evaluation import compute_metrics, evaluate_model
 from .experiment_tracker import (  # type: ignore
