@@ -19,6 +19,8 @@ import numpy as np
 import pandas as pd
 from mlflow_ai_experiment.evaluation import (
     evaluate_model,
+    compute_metrics,
+    get_model_size,
 )
 
 
@@ -160,14 +162,75 @@ def evaluate_all_models(
             # Evaluate
             start_time = time.time()
             if model_type == "transformer":
-                # For transformer models, we need special handling
-                # The model from mlflow.transformers.load_model returns a pipeline
-                # that includes the model and tokenizer, we need to adapt evaluation
-                # TODO: Implement proper transformer evaluation in batch context
-                print(
-                    f"  Skipping transformer model {run_id} - needs custom evaluation logic"
-                )
-                continue
+                # Custom evaluation for transformer pipeline
+                # Measure latency
+                if len(X_test) > 100:
+                    X_sample = X_test[:100]
+                else:
+                    X_sample = X_test
+                # Warm-up
+                _ = model(X_sample)
+                start_lat = time.time()
+                num_repeats = 5
+                for _ in range(num_repeats):
+                    _ = model(X_sample)
+                end_lat = time.time()
+                avg_latency = (
+                    (end_lat - start_lat) / (num_repeats * len(X_sample))
+                ) * 1000
+
+                # Get predictions and probabilities
+                raw_outputs = model(X_test)
+                # The model's underlying HuggingFace model to get label mapping
+                hf_model = model.model
+                label2id = {}
+                if hasattr(hf_model, "config") and hasattr(hf_model.config, "label2id"):
+                    label2id = hf_model.config.label2id
+                else:
+                    raise RuntimeError(
+                        f"Transformer model {run_id} missing label2id mapping"
+                    )
+                y_pred_list = []
+                for pred in raw_outputs:
+                    label = pred["label"]
+                    if label in label2id:
+                        y_pred_list.append(label2id[label])
+                    else:
+                        try:
+                            y_pred_list.append(int(label))
+                        except Exception:
+                            raise ValueError(f"Cannot map label {label} to integer")
+                y_pred = np.array(y_pred_list)
+
+                # Get probabilities
+                try:
+                    raw_proba_outputs = model(X_test, return_all_scores=True)
+                    n_samples = len(raw_proba_outputs)
+                    if n_samples > 0:
+                        n_classes = len(raw_proba_outputs[0])
+                        proba = np.zeros((n_samples, n_classes))
+                        for i, sample_outputs in enumerate(raw_proba_outputs):
+                            for out in sample_outputs:
+                                label = out["label"]
+                                score = out["score"]
+                                col = label2id.get(label)
+                                if col is None:
+                                    try:
+                                        col = int(label)
+                                    except Exception:
+                                        continue
+                                proba[i, col] = score
+                        y_proba = proba
+                    else:
+                        y_proba = None
+                except Exception as e:
+                    print(f"  Warning: Could not get probabilities for {run_id}: {e}")
+                    y_proba = None
+
+                # Compute metrics
+                metrics = compute_metrics(y_test, y_pred, y_proba)
+                metrics["inference_latency_ms"] = avg_latency
+                metrics["model_size_mb"] = get_model_size(model)
             else:
                 # Classical model evaluation
                 metrics = evaluate_model(model, X_test, y_test, log_to_mlflow=False)
@@ -218,7 +281,10 @@ def evaluate_all_models(
         mlflow.log_artifact(str(csv_path), "comparison")
         mlflow.log_artifact(str(json_path), "comparison")
 
-        # Log summary metrics
+        # Log summary metrics and confusion matrices
+        import json
+        import tempfile
+
         for _, row in df_results.iterrows():
             prefix = str(row["model_name"]).replace(" ", "_")
             for metric in [
@@ -231,6 +297,20 @@ def evaluate_all_models(
             ]:
                 if metric in row.index and not bool(pd.isna(row[metric])):
                     mlflow.log_metric(f"{prefix}_{metric}", float(row[metric]))
+
+            # Log confusion matrix as artifact
+            if (
+                "confusion_matrix" in row.index
+                and not pd.isna(row["confusion_matrix"]).all()
+            ):
+                cm_data = row["confusion_matrix"]
+                with tempfile.NamedTemporaryFile(
+                    mode="w", suffix=".json", delete=False
+                ) as f:
+                    json.dump(cm_data, f, indent=2)
+                    temp_path = f.name
+                mlflow.log_artifact(temp_path, f"confusion_matrices/{prefix}.json")
+                os.unlink(temp_path)
 
         print(f"✓ Comparison run logged: {comparison_run.info.run_id}")
 
