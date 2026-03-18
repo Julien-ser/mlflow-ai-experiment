@@ -26,8 +26,9 @@ from mlflow_ai_experiment.experiment_tracker import (
 from mlflow_ai_experiment.preprocessing import preprocess_dataset
 from mlflow_ai_experiment.hyperopt import (
     optimize_all_classical,
-    optimize_all_transformers,
+    optimize_transformer_model,
 )
+from mlflow_ai_experiment.models.transformers import create_transformer_model
 
 config = load_config()
 DATASET_VERSION = config["tags"]["dataset_version"]
@@ -154,8 +155,10 @@ def run_hyperopt_classical(
 
 def run_hyperopt_transformers(
     model_types,
-    train_dataset,
-    val_dataset,
+    train_texts,
+    train_labels,
+    val_texts,
+    val_labels,
     experiment_name,
     n_trials=20,
     timeout=None,
@@ -169,22 +172,28 @@ def run_hyperopt_transformers(
     print(f"Trials per model: {n_trials}")
     print(f"{'=' * 80}")
 
-    results = optimize_all_transformers(
-        model_types=model_types,
-        train_dataset=train_dataset,
-        val_dataset=val_dataset,
-        experiment_name=experiment_name,
-        n_trials=n_trials,
-        dataset_version=dataset_version,
-        preprocessing_config=preprocessing_config,
-    )
-
-    # Save results for each model
-    output_dir = "../results/hyperopt"
-    for model_type, study in results.items():
-        print(f"\nBest {model_type} - Validation Accuracy: {study.best_value:.4f}")
-        print(f"Best parameters: {study.best_params}")
-        save_study_results(study, f"transformer_{model_type}", output_dir)
+    results = {}
+    for model_type in model_types:
+        print(f"\nOptimizing {model_type}...")
+        # Create model to get tokenizer
+        model = create_transformer_model(model_type)
+        model.load_tokenizer()
+        # Tokenize data
+        train_dataset = model.tokenize_data(train_texts, train_labels)
+        val_dataset = model.tokenize_data(val_texts, val_labels)
+        # Run optimization
+        study = optimize_transformer_model(
+            model_type=model_type,
+            train_dataset=train_dataset,
+            val_dataset=val_dataset,
+            experiment_name=experiment_name,
+            n_trials=n_trials,
+            timeout=timeout,
+            dataset_version=dataset_version,
+            preprocessing_config=preprocessing_config,
+        )
+        results[model_type] = study
+        print(f"Best accuracy for {model_type}: {study.best_value:.4f}")
 
     return results
 
@@ -356,24 +365,17 @@ def main():
 
         if args.mode in ["transformer", "both"] and transformer_models:
             print(f"\n[2/3] Optimizing transformer models: {transformer_models}")
-            # Tokenize validation dataset once for all transformer optimization
-            # Note: For actual optimization, we'd need to create tokenized datasets
-            # We'll create dummy tokenized datasets for now - in practice you'd tokenize properly
-            # However, since optimization is done trial-by-trial, we can pass raw texts
-            # But the objective_transformer expects tokenized datasets. We need a way to tokenize per trial
-            # The hyperopt module's objective_transformer expects train_dataset and val_dataset already tokenized
-            # This is a mismatch - we need to either:
-            # 1. Modify hyperopt to accept raw texts and tokenize inside objective
-            # 2. Tokenize here and pass tokenized datasets
-            # For now, let's create a simple tokenization wrapper
-
-            # Actually, looking at objective_transformer, it expects tokenized datasets
-            # But we can't tokenize once because different models have different tokenizers
-            # So we need to modify the approach.
-            # Let's just warn and skip transformers for now, or implement a fix.
-            print(
-                "WARNING: Transformer optimization requires model-specific tokenization. "
-                "This will be implemented in a future version."
+            transformer_results = run_hyperopt_transformers(
+                model_types=transformer_models,
+                train_texts=train_texts,
+                train_labels=train_labels,
+                val_texts=val_texts,
+                val_labels=val_labels,
+                experiment_name=args.experiment_name,
+                n_trials=args.n_trials,
+                timeout=args.timeout,
+                dataset_version=args.dataset_version,
+                preprocessing_config=args.preprocessing_config,
             )
             # For now, we'll skip transformer optimization or we can create a workaround
             # by creating a wrapper that tokenizes inside the objective
