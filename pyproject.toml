@@ -51,6 +51,9 @@ dev = [
     "ipykernel>=6.25.0",
 ]
 
+[tool.mypy]
+ignore_missing_imports = true
+
 [tool.setuptools]
 package-dir = {"" = "src"}
 packages = {find = {where = ["src"]}}
