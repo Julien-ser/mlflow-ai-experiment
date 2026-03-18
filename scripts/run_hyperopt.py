@@ -11,24 +11,16 @@ import sys
 import pandas as pd
 import yaml  # type: ignore
 
-# Add src to path
-sys.path.insert(
-    0, os.path.join(os.path.dirname(__file__), "..", "mlflow_ai_experiment")
-)
+# Add project root to path to enable package imports
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import mlflow
-
 from mlflow_ai_experiment.data_loader import load_imdb_dataset  # type: ignore
 from mlflow_ai_experiment.experiment_tracker import (
     load_config,
     get_or_create_family_experiment,
 )
 from mlflow_ai_experiment.preprocessing import preprocess_dataset
-from mlflow_ai_experiment.hyperopt import (
-    optimize_all_classical,
-    optimize_transformer_model,
-)
-from mlflow_ai_experiment.models.transformers import create_transformer_model
 
 config = load_config()
 DATASET_VERSION = config["tags"]["dataset_version"]
@@ -125,6 +117,8 @@ def run_hyperopt_classical(
     preprocessing_config=PREPROCESSING_CONFIG,
 ):
     """Run hyperparameter optimization for classical models."""
+    from mlflow_ai_experiment.hyperopt import optimize_all_classical
+
     print(f"\n{'=' * 80}")
     print("CLASSICAL HYPERPARAMETER OPTIMIZATION")
     print(f"Models: {model_types}")
@@ -166,6 +160,22 @@ def run_hyperopt_transformers(
     preprocessing_config=PREPROCESSING_CONFIG,
 ):
     """Run hyperparameter optimization for transformer models."""
+    from mlflow_ai_experiment.hyperopt import optimize_transformer_model
+    from transformers import AutoTokenizer
+    import torch
+
+    # Mapping of model_type to pretrained model name
+    MODEL_NAMES = {
+        "bert": "bert-base-uncased",
+        "roberta": "roberta-base",
+        "deberta": "microsoft/deberta-v3-base",
+        "xlnet": "xlnet-base-cased",
+        "electra": "google/electra-base-discriminator",
+        "albert": "albert-base-v2",
+        "distilbert": "distilbert-base-uncased",
+        "gpt2": "gpt2",
+    }
+
     print(f"\n{'=' * 80}")
     print("TRANSFORMER HYPERPARAMETER OPTIMIZATION")
     print(f"Models: {model_types}")
@@ -175,17 +185,32 @@ def run_hyperopt_transformers(
     results = {}
     for model_type in model_types:
         print(f"\nOptimizing {model_type}...")
-        # Create model to get tokenizer
-        model = create_transformer_model(model_type)
-        model.load_tokenizer()
+        if model_type not in MODEL_NAMES:
+            raise ValueError(f"Unknown model type: {model_type}")
+        model_name = MODEL_NAMES[model_type]
+        tokenizer = AutoTokenizer.from_pretrained(model_name)
         # Tokenize data
-        train_dataset = model.tokenize_data(train_texts, train_labels)
-        val_dataset = model.tokenize_data(val_texts, val_labels)
+        train_encoding = tokenizer(
+            train_texts,
+            padding=True,
+            truncation=True,
+            max_length=512,
+            return_tensors="pt",
+        )
+        train_encoding["labels"] = torch.tensor(train_labels)
+        val_encoding = tokenizer(
+            val_texts,
+            padding=True,
+            truncation=True,
+            max_length=512,
+            return_tensors="pt",
+        )
+        val_encoding["labels"] = torch.tensor(val_labels)
         # Run optimization
         study = optimize_transformer_model(
             model_type=model_type,
-            train_dataset=train_dataset,
-            val_dataset=val_dataset,
+            train_dataset=train_encoding,
+            val_dataset=val_encoding,
             experiment_name=experiment_name,
             n_trials=n_trials,
             timeout=timeout,
