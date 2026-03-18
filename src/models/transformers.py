@@ -168,7 +168,9 @@ class TransformerModel:
         ):
             self.model.classifier.dropout.p = self.dropout
 
-        self.model.to(self.device)
+        # Move model to device only for PyTorch
+        if self.backend == "pytorch":
+            self.model.to(self.device)
         return self.model
 
     def tokenize_data(self, texts, labels=None, padding=True, truncation=True):
@@ -265,8 +267,8 @@ class TransformerModel:
                 raise ImportError(
                     "TensorFlow is not installed. Please install tensorflow to use the tensorflow backend."
                 )
-            # Enable mixed precision if requested
-            if args.get("fp16"):
+            # Handle mixed precision: check for fp16 flag, set policy, and remove from args
+            if args.pop("fp16", False):
                 import tensorflow as tf
 
                 tf.keras.mixed_precision.set_global_policy("mixed_float16")
