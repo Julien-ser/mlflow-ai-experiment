@@ -92,7 +92,6 @@ class LogisticRegressionModel:
 
             # Set standardized tags
             set_standard_tags(
-                run=run,
                 model_type="logistic_regression",
                 dataset_version=dataset_version,
                 preprocessing_config=preprocessing_config,
@@ -187,7 +186,6 @@ class SVMModel:
 
             # Set standardized tags
             set_standard_tags(
-                run=run,
                 model_type="svm",
                 dataset_version=dataset_version,
                 preprocessing_config=preprocessing_config,

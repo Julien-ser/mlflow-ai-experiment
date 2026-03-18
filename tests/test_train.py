@@ -3,8 +3,6 @@ Integration tests for MLflow experiment tracking.
 """
 
 import pytest
-import tempfile
-import shutil
 import mlflow
 import pandas as pd
 from mlflow_ai_experiment.experiment_tracker import (
@@ -26,7 +24,7 @@ def temp_mlflow_db(tmp_path):
     mlflow.set_tracking_uri(original_uri)
     try:
         db_path.unlink()
-    except:
+    except Exception:
         pass
 
 
