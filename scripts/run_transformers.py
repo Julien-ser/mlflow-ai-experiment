@@ -189,7 +189,6 @@ def train_and_evaluate_transformer(
 
             # Set standardized tags
             set_standard_tags(
-                run=run,
                 model_type=model_type,
                 dataset_version=dataset_version,
                 preprocessing_config=preprocessing_config,

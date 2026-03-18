@@ -75,7 +75,6 @@ def get_or_create_family_experiment(config: dict, model_family: str) -> Experime
 
 
 def set_standard_tags(
-    run: mlflow.ActiveRun,
     model_type: str,
     dataset_version: str,
     preprocessing_config: str,
@@ -104,7 +103,7 @@ def set_standard_tags(
     tags.update(extra_tags)
 
     for key, value in tags.items():
-        mlflow.set_tag(key, value)
+        run.set_tag(key, value)
 
 
 def log_sklearn_model(
