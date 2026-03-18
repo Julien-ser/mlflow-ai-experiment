@@ -82,10 +82,9 @@ def set_standard_tags(
     **extra_tags: Any,
 ) -> None:
     """
-    Set standardized tags on an MLflow run.
+    Set standardized tags on the active MLflow run.
 
     Args:
-        run: Active MLflow run
         model_type: Type of model (e.g., 'bert', 'logistic_regression')
         dataset_version: Version string for the dataset
         preprocessing_config: Name of preprocessing configuration used
@@ -103,7 +102,7 @@ def set_standard_tags(
     tags.update(extra_tags)
 
     for key, value in tags.items():
-        run.set_tag(key, value)
+        mlflow.set_tag(key, value)
 
 
 def log_sklearn_model(
