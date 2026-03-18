@@ -4,7 +4,7 @@ Hyperparameter optimization framework using Optuna with MLflow integration.
 Provides automated hyperparameter search across transformer and classical models.
 """
 
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Protocol, Type
 
 import mlflow
 import optuna
@@ -19,6 +19,30 @@ from .models.classical import (
     XGBoostModel,
 )
 from .models.transformers import create_transformer_model
+
+
+class ClassicalModel(Protocol):
+    """Protocol for classical ML models."""
+
+    def __init__(self, params: Any = None) -> None: ...
+
+    def train(
+        self,
+        X_train: Any,
+        y_train: Any,
+        X_val: Any,
+        y_val: Any,
+    ) -> Dict[str, float]: ...
+
+    def log_to_mlflow(
+        self,
+        experiment_name: str,
+        run_name: str,
+        X_test: Any = None,
+        y_test: Any = None,
+        dataset_version: str = "v1.0",
+        preprocessing_config: str = "standard",
+    ) -> Any: ...
 
 
 # ==================== Search Space Definitions ====================
@@ -183,7 +207,7 @@ def objective_classical(
     params = get_classical_search_space(trial, model_type)
 
     # Create and train model
-    model_class = {
+    model_class: Type[ClassicalModel] = {
         "logistic_regression": LogisticRegressionModel,
         "svm": SVMModel,
         "random_forest": RandomForestModel,
