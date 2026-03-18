@@ -41,6 +41,19 @@ def main():
             # Merge training section for random seed
             if "training" in full_config and "random_seed" not in config:
                 config["random_seed"] = full_config["training"].get("random_seed", 42)
+            # Merge tags, experiments, and experiment for comprehensive experiment tracking
+            if "tags" in full_config:
+                config["tags"] = full_config["tags"]
+                # Flatten dataset_version and preprocessing_config to top-level
+                tags_dict = full_config["tags"]
+                if "dataset_version" in tags_dict:
+                    config["dataset_version"] = tags_dict["dataset_version"]
+                if "preprocessing_config" in tags_dict:
+                    config["preprocessing_config"] = tags_dict["preprocessing_config"]
+            if "experiments" in full_config:
+                config["experiments"] = full_config["experiments"]
+            if "experiment" in full_config:
+                config["experiment"] = full_config["experiment"]
 
     model_type = config.get("model_type", "transformer")
     random_seed = config.get("random_seed", 42)

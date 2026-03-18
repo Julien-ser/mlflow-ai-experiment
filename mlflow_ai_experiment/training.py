@@ -12,11 +12,16 @@ import time
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
-import joblib  # type: ignore
 import mlflow
 import numpy as np
 
 from .evaluation import compute_metrics
+from .experiment_tracker import (
+    get_or_create_family_experiment,
+    set_standard_tags,
+    log_model_artifact,
+    log_predictions,
+)
 
 # Local imports
 from .models.classical import (
@@ -72,12 +77,25 @@ class Trainer:
         self.checkpoint_path = Path(config.get("checkpoint_dir", "checkpoints"))
         self.checkpoint_path.mkdir(parents=True, exist_ok=True)
 
-        # MLflow setup
+        # MLflow setup - use experiment_tracker for family-based experiments
         self.mlflow_enabled = config.get("mlflow_tracking", True)
+        self.experiment = None
         if self.mlflow_enabled:
-            mlflow.set_tracking_uri(config.get("mlflow_uri", "sqlite:///mlflow.db"))
-            experiment_name = config.get("mlflow_experiment_name", "experiment")
-            mlflow.set_experiment(experiment_name)
+            tracking_uri = config.get("mlflow_uri", "sqlite:///mlflow.db")
+            mlflow.set_tracking_uri(tracking_uri)
+
+            # Determine model family from model_type
+            model_family = "classical" if model_type == "classical" else "transformers"
+
+            # Get or create experiment for this model family
+            # We need a config with 'experiments' mapping; fallback to using simple experiment name
+            if "experiments" in config:
+                self.experiment = get_or_create_family_experiment(config, model_family)
+            else:
+                # Legacy: use single experiment name
+                experiment_name = config.get("mlflow_experiment_name", model_family)
+                mlflow.set_experiment(experiment_name)
+                print(f"✓ Using experiment: {experiment_name}")
 
     def _prepare_model(self, model_config: Dict[str, Any]) -> None:
         """
@@ -94,6 +112,8 @@ class Trainer:
                 raise ValueError(f"Unsupported classical model: {model_config['name']}")
             self.model = model_cls[model_config["name"]](model_config["params"])
             self.optimizer = None
+            # Store model type string for tagging
+            self.model_type_str = model_config["name"]
         elif self.model_type == "transformer":
             if not TORCH_AVAILABLE and self.backend == "pytorch":
                 raise RuntimeError(
@@ -120,6 +140,10 @@ class Trainer:
                 ),
             }
             transformer = TransformerModel(**transformer_params)
+            # Determine model type string for tagging (e.g., 'bert', 'roberta')
+            self.model_type_str = transformer._extract_model_type(
+                transformer.model_name
+            )
             transformer.build_model()
             # Store both the wrapper and the raw model
             self.transformer_model = transformer
@@ -161,10 +185,15 @@ class Trainer:
             mlflow.log_metrics({f"train_{k}": v for k, v in train_metrics.items()})
             for k, v in val_metrics.items():
                 mlflow.log_metric(f"val_{k}", v)
-            # Save model artifact
-            model_path = self.checkpoint_path / "classical_model.joblib"
-            joblib.dump(self.model, model_path)
-            mlflow.log_artifact(str(model_path))
+            # Save model artifact using experiment_tracker
+            model_config = self.config.get("model", {})
+            model_name = model_config.get("name", "unknown")
+            log_model_artifact(
+                self.model,
+                model_type=model_name,
+                framework="sklearn",
+                artifact_path="model",
+            )
 
         return {**train_metrics, **val_metrics}
 
@@ -247,6 +276,17 @@ class Trainer:
         if self.mlflow_enabled:
             with mlflow.start_run():
                 mlflow.log_params(self.config)
+                # Set standardized tags
+                set_standard_tags(
+                    model_type=getattr(self, "model_type_str", self.model_type),
+                    dataset_version=self.config.get("dataset_version", "unknown"),
+                    preprocessing_config=self.config.get(
+                        "preprocessing_config", "unknown"
+                    ),
+                    framework="sklearn"
+                    if self.model_type == "classical"
+                    else "transformers",
+                )
                 metrics = train_func(train_dataset, valid_dataset)
         else:
             metrics = train_func(train_dataset, valid_dataset)
