@@ -8,6 +8,7 @@ mlflow_ai_experiment/data_utils.py
 mlflow_ai_experiment/data_versioning.py
 mlflow_ai_experiment/evaluation.py
 mlflow_ai_experiment/experiment_tracker.py
+mlflow_ai_experiment/hyperopt.py
 mlflow_ai_experiment/preprocessing.py
 mlflow_ai_experiment/tokenizers.py
 mlflow_ai_experiment/train.py
