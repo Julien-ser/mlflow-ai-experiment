@@ -32,7 +32,7 @@
   - Deliverable: `src/training.py` with complete training pipeline, `src/train.py` CLI, configuration schema in `config/training_schema.yaml`, and comprehensive documentation
 
 ## Phase 4: Experimentation, Logging & Analysis
-- [ ] [DEBUG-NEEDED] - [ ] [DEBUG-NEEDED] - [ ] [DEBUG-NEEDED] - [ ] Set up comprehensive MLFlow experiment tracking: Create separate experiments for each model family, implement custom MLFlow tags (model_type, dataset_version, preprocessing_config), and enable artifact logging for models and predictions
+- [ ] [DEBUG-NEEDED] - [ ] [DEBUG-NEEDED] - [ ] [DEBUG-NEEDED] - [ ] [DEBUG-NEEDED] - [ ] Set up comprehensive MLFlow experiment tracking: Create separate experiments for each model family, implement custom MLFlow tags (model_type, dataset_version, preprocessing_config), and enable artifact logging for models and predictions
   - Deliverable: `src/experiment_tracker.py` with experiment management functions, automated tagging system, and artifact storage structure in `artifacts/`
 - [ ] Design hyperparameter optimization framework: Integrate Optuna or Ray Tune with MLFlow for automated hyperparameter search across all models, define search spaces for each model architecture
   - Deliverable: `src/hyperopt.py` with optimization loops, search space definitions in `config/hyperparams/`, script `scripts/run_hyperopt.py`, and example results
