@@ -15,7 +15,6 @@ from pathlib import Path
 from typing import Dict, Optional, Any
 import pandas as pd
 import joblib
-import json
 
 
 def load_config(config_path: str = "config.yaml") -> dict:
@@ -174,7 +173,6 @@ def log_model_artifact(
     else:
         # Fallback: save as pickle
         import tempfile
-        import os
 
         with tempfile.TemporaryDirectory() as tmpdir:
             path = Path(tmpdir) / "model.pkl"
