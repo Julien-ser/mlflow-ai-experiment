@@ -55,5 +55,4 @@ dev = [
 ignore_missing_imports = true
 
 [tool.setuptools]
-package-dir = {"" = "mlflow_ai_experiment"}
-packages = {find = {where = ["mlflow_ai_experiment"]}}
+packages = ["mlflow_ai_experiment"]
