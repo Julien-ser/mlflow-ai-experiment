@@ -157,6 +157,17 @@ class BaselineModel:
                 }
             )
 
+            # Log predictions as artifact
+            if X_test is not None and y_test is not None:
+                y_pred = self.predict(X_test)
+                predictions_df = pd.DataFrame(
+                    {"true_label": y_test, "predicted_label": y_pred}
+                )
+                predictions_path = "predictions.csv"
+                predictions_df.to_csv(predictions_path, index=False)
+                mlflow.log_artifact(predictions_path, "predictions")
+                os.remove(predictions_path)
+
             # Log model
             mlflow_sklearn.log_model(  # type: ignore
                 self.classifier, "model", registered_model_name="baseline_logreg"

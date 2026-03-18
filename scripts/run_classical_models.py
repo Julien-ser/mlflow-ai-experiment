@@ -19,6 +19,10 @@ from src.models.classical import LogisticRegressionModel  # type: ignore
 from src.models.classical import RandomForestModel, SVMModel, XGBoostModel
 from src.preprocessing import preprocess_dataset  # type: ignore
 
+# MLFlow configuration
+DATASET_VERSION = "v1.0"
+PREPROCESSING_CONFIG = "standard"
+
 
 def train_and_evaluate_model(
     model_wrapper,
@@ -30,6 +34,8 @@ def train_and_evaluate_model(
     X_test,
     y_test,
     experiment_name="classical_models",
+    dataset_version=DATASET_VERSION,
+    preprocessing_config=PREPROCESSING_CONFIG,
 ):
     """
     Train and evaluate a single model with MLflow logging.
@@ -52,6 +58,8 @@ def train_and_evaluate_model(
         run_name=model_name,
         X_test=X_test,
         y_test=y_test,
+        dataset_version=dataset_version,
+        preprocessing_config=preprocessing_config,
     )
 
     # Generate predictions on test set
@@ -87,9 +95,23 @@ def train_and_evaluate_model(
     model_wrapper.save_model(model_path)
     print(f"Model saved to {model_path}")
 
-    # Log model artifact path as MLflow tag
+    # Save predictions as artifact
+    predictions_dir = "../results/predictions"
+    os.makedirs(predictions_dir, exist_ok=True)
+    predictions_path = f"{predictions_dir}/{model_name}_predictions.csv"
+    predictions_df = pd.DataFrame(
+        {
+            "true_label": y_test,
+            "predicted_label": y_pred,
+        }
+    )
+    predictions_df.to_csv(predictions_path, index=False)
+    print(f"Predictions saved to {predictions_path}")
+
+    # Log model artifact path and predictions as MLflow artifacts
     with mlflow.start_run(run_id=run_id):
         mlflow.set_tag("model_path", model_path)
+        mlflow.log_artifact(predictions_path, "predictions")
 
     return metrics
 

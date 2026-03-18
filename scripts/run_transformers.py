@@ -124,6 +124,20 @@ def train_and_evaluate_transformer(
     print("\nClassification Report:")
     print(classification_report(test_labels, test_preds, zero_division="warn"))
 
+    # Save predictions as artifact
+    predictions_dir = "../results/predictions"
+    os.makedirs(predictions_dir, exist_ok=True)
+    predictions_path = f"{predictions_dir}/{model_type}_{config_name}_predictions.csv"
+    predictions_df = pd.DataFrame(
+        {
+            "text": test_texts,
+            "true_label": test_labels,
+            "predicted_label": test_preds,
+        }
+    )
+    predictions_df.to_csv(predictions_path, index=False)
+    print(f"Predictions saved to {predictions_path}")
+
     # Save model to models directory
     model_dir = f"../models/transformers/{model_type}_{config_name}"
     os.makedirs(model_dir, exist_ok=True)
@@ -161,6 +175,9 @@ def train_and_evaluate_transformer(
         mlflow.set_tag("framework", "transformers")
         mlflow.set_tag("dataset_version", "v1.0")
         mlflow.set_tag("preprocessing_config", "standard")
+
+        # Log predictions artifact
+        mlflow.log_artifact(predictions_path, "predictions")
 
         metrics["run_id"] = run.info.run_id
 

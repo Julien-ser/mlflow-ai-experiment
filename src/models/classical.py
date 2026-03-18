@@ -49,7 +49,13 @@ class LogisticRegressionModel:
         return self.model.predict_proba(X)  # type: ignore[return-type]
 
     def log_to_mlflow(
-        self, experiment_name, run_name="logistic_regression", X_test=None, y_test=None
+        self,
+        experiment_name,
+        run_name="logistic_regression",
+        X_test=None,
+        y_test=None,
+        dataset_version="v1.0",
+        preprocessing_config="standard",
     ):
         """Log model and parameters to MLFlow."""
         mlflow.set_experiment(experiment_name)
@@ -85,6 +91,8 @@ class LogisticRegressionModel:
             # Log tags
             mlflow.set_tag("model_type", "logistic_regression")
             mlflow.set_tag("framework", "sklearn")
+            mlflow.set_tag("dataset_version", dataset_version)
+            mlflow.set_tag("preprocessing_config", preprocessing_config)
 
             return run.info.run_id
 
@@ -133,7 +141,15 @@ class SVMModel:
         assert self.model is not None
         return self.model.predict_proba(X)  # type: ignore[return-type]
 
-    def log_to_mlflow(self, experiment_name, run_name="svm", X_test=None, y_test=None):
+    def log_to_mlflow(
+        self,
+        experiment_name,
+        run_name="svm",
+        X_test=None,
+        y_test=None,
+        dataset_version="v1.0",
+        preprocessing_config="standard",
+    ):
         """Log model to MLFlow."""
         mlflow.set_experiment(experiment_name)
 
@@ -166,6 +182,8 @@ class SVMModel:
 
             mlflow.set_tag("model_type", "svm")
             mlflow.set_tag("framework", "sklearn")
+            mlflow.set_tag("dataset_version", dataset_version)
+            mlflow.set_tag("preprocessing_config", preprocessing_config)
 
             return run.info.run_id
 
@@ -214,7 +232,13 @@ class RandomForestModel:
         return self.model.predict_proba(X)  # type: ignore[return-type]
 
     def log_to_mlflow(
-        self, experiment_name, run_name="random_forest", X_test=None, y_test=None
+        self,
+        experiment_name,
+        run_name="random_forest",
+        X_test=None,
+        y_test=None,
+        dataset_version="v1.0",
+        preprocessing_config="standard",
     ):
         """Log model to MLFlow."""
         mlflow.set_experiment(experiment_name)
@@ -248,6 +272,8 @@ class RandomForestModel:
 
             mlflow.set_tag("model_type", "random_forest")
             mlflow.set_tag("framework", "sklearn")
+            mlflow.set_tag("dataset_version", dataset_version)
+            mlflow.set_tag("preprocessing_config", preprocessing_config)
 
             return run.info.run_id
 
@@ -305,7 +331,13 @@ class XGBoostModel:
         return self.model.predict_proba(X)  # type: ignore[return-type]
 
     def log_to_mlflow(
-        self, experiment_name, run_name="xgboost", X_test=None, y_test=None
+        self,
+        experiment_name,
+        run_name="xgboost",
+        X_test=None,
+        y_test=None,
+        dataset_version="v1.0",
+        preprocessing_config="standard",
     ):
         """Log model to MLFlow."""
         mlflow.set_experiment(experiment_name)
@@ -339,6 +371,8 @@ class XGBoostModel:
 
             mlflow.set_tag("model_type", "xgboost")
             mlflow.set_tag("framework", "xgboost")
+            mlflow.set_tag("dataset_version", dataset_version)
+            mlflow.set_tag("preprocessing_config", preprocessing_config)
 
             return run.info.run_id
 
