@@ -2,6 +2,7 @@
 Integration tests for MLflow experiment tracking.
 """
 
+import os
 import pytest
 import mlflow
 import pandas as pd
@@ -19,9 +20,26 @@ def temp_mlflow_db(tmp_path):
     db_path = tmp_path / "mlflow.db"
     tracking_uri = f"sqlite:///{db_path}"
     original_uri = mlflow.get_tracking_uri()
+    # Store original env vars to restore later
+    orig_exp_id = os.environ.get("MLFLOW_EXPERIMENT_ID")
+    orig_exp_name = os.environ.get("MLFLOW_EXPERIMENT_NAME")
+    # Clear MLflow experiment env vars to avoid contamination
+    os.environ.pop("MLFLOW_EXPERIMENT_ID", None)
+    os.environ.pop("MLFLOW_EXPERIMENT_NAME", None)
     mlflow.set_tracking_uri(tracking_uri)
+    # Reset the tracking client and clear cached experiment ID
+    mlflow.tracking._tracking_service.client = None
+    mlflow.tracking.fluent._active_experiment_id = None
     yield tracking_uri
+    # Restore original tracking URI and clear caches
     mlflow.set_tracking_uri(original_uri)
+    mlflow.tracking._tracking_service.client = None
+    mlflow.tracking.fluent._active_experiment_id = None
+    # Restore original env vars
+    if orig_exp_id is not None:
+        os.environ["MLFLOW_EXPERIMENT_ID"] = orig_exp_id
+    if orig_exp_name is not None:
+        os.environ["MLFLOW_EXPERIMENT_NAME"] = orig_exp_name
     try:
         db_path.unlink()
     except Exception:
