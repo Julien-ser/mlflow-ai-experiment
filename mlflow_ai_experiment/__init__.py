@@ -13,6 +13,7 @@ from .experiment_tracker import (  # type: ignore
     set_standard_tags,
     setup_mlflow_tracking,
 )
+from . import experiment_tracker
 from .models.classical import create_model
 from .preprocessing import clean_text, preprocess_dataset
 
