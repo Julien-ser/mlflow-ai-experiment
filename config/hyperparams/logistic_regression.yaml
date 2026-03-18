@@ -1,0 +1,12 @@
+search_space:
+  C:
+    type: loguniform
+    low: 1.0e-3
+    high: 10.0
+  max_iter:
+    type: int
+    low: 500
+    high: 2000
+  solver:
+    type: choice
+    values: ["liblinear", "lbfgs"]

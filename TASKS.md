@@ -34,7 +34,7 @@
 ## Phase 4: Experimentation, Logging & Analysis
 - [x] Set up comprehensive MLFlow experiment tracking: Create separate experiments for each model family, implement custom MLFlow tags (model_type, dataset_version, preprocessing_config), and enable artifact logging for models and predictions
   - Deliverable: `src/experiment_tracker.py` with experiment management functions, automated tagging system, and artifact storage structure in `artifacts/`
-- [ ] Design hyperparameter optimization framework: Integrate Optuna or Ray Tune with MLFlow for automated hyperparameter search across all models, define search spaces for each model architecture
+- [x] Design hyperparameter optimization framework: Integrate Optuna or Ray Tune with MLFlow for automated hyperparameter search across all models, define search spaces for each model architecture
   - Deliverable: `src/hyperopt.py` with optimization loops, search space definitions in `config/hyperparams/`, script `scripts/run_hyperopt.py`, and example results
 - [ ] Implement automated model evaluation suite: Create evaluation script that computes all metrics (accuracy, precision, recall, F1, confusion matrix, inference latency, memory footprint) and logs them consistently
   - Deliverable: `src/evaluation.py` with comprehensive metrics calculation, `scripts/evaluate_all.py` for batch evaluation, standardized MLFlow metrics naming, and comparison tables generation
