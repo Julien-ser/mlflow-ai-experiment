@@ -11,6 +11,11 @@ import optuna
 from optuna.pruners import MedianPruner
 from optuna.samplers import TPESampler
 
+if TYPE_CHECKING:
+    from ray.tune.search import ConcurrencyLimiter
+    from ray.tune.search.hyperopt import HyperoptSearch
+    from ray.tune.schedulers import ASHAScheduler
+
 from .experiment_tracker import setup_mlflow_tracking, set_standard_tags
 from .models.classical import (
     LogisticRegressionModel,
