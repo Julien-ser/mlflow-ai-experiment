@@ -7,6 +7,7 @@ import tempfile
 import numpy as np
 import optuna
 import pytest
+import uuid
 from mlflow_ai_experiment.hyperopt import (
     get_transformer_search_space,
     get_classical_search_space,
@@ -93,6 +94,7 @@ class TestOptimizeClassical:
             experiment_name="test_hyperopt_classical",
             n_trials=1,
             timeout=None,
+            study_name=f"test_logreg_{uuid.uuid4().hex}",
         )
         assert study is not None
         assert len(study.trials) == 1
