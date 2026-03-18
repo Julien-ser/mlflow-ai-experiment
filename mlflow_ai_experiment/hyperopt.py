@@ -788,6 +788,7 @@ def optimize_transformer_model_ray(
         from ray import tune  # type: ignore
         from ray.tune.search import ConcurrencyLimiter  # type: ignore
         from ray.tune.search.hyperopt import HyperoptSearch  # type: ignore
+        from ray.tune.schedulers import ASHAScheduler  # type: ignore
     except ImportError as e:
         raise ImportError(
             "Ray Tune is required for this function. Install with: pip install 'ray[tune]>=2.7.0'"
