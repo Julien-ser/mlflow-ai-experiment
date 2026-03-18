@@ -7,7 +7,7 @@ import os
 import sys
 
 import pandas as pd
-import yaml
+import yaml  # type: ignore
 
 # Add src to path
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "src"))
@@ -19,7 +19,11 @@ from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_sc
 
 from src.data_loader import load_imdb_dataset  # type: ignore
 from src.models.transformers import create_transformer_model  # type: ignore
-from setup_mlflow import load_config, get_or_create_family_experiment
+from experiment_tracker import (
+    load_config,
+    get_or_create_family_experiment,
+    set_standard_tags,
+)
 
 config = load_config()
 DATASET_VERSION = config["tags"]["dataset_version"]
@@ -181,13 +185,16 @@ def train_and_evaluate_transformer(
             if key in model_config:
                 mlflow.log_param(key, model_config[key])
 
-        # Log tags
-        mlflow.set_tag("model_type", model_type)
-        mlflow.set_tag("config_name", config_name)
-        mlflow.set_tag("model_path", model_path)
-        mlflow.set_tag("framework", "transformers")
-        mlflow.set_tag("dataset_version", dataset_version)
-        mlflow.set_tag("preprocessing_config", preprocessing_config)
+            # Set standardized tags
+            set_standard_tags(
+                run=run,
+                model_type=model_type,
+                dataset_version=dataset_version,
+                preprocessing_config=preprocessing_config,
+                framework="transformers",
+                config_name=config_name,
+                model_path=model_path,
+            )
 
         # Log predictions artifact
         mlflow.log_artifact(predictions_path, "predictions")

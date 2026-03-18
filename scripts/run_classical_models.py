@@ -18,7 +18,7 @@ from src.data_loader import load_imdb_dataset  # type: ignore
 from src.models.classical import LogisticRegressionModel  # type: ignore
 from src.models.classical import RandomForestModel, SVMModel, XGBoostModel
 from src.preprocessing import preprocess_dataset  # type: ignore
-from setup_mlflow import load_config, get_or_create_family_experiment
+from experiment_tracker import load_config, get_or_create_family_experiment
 
 config = load_config()
 DATASET_VERSION = config["tags"]["dataset_version"]

@@ -14,6 +14,8 @@ from sklearn.ensemble import RandomForestClassifier  # type: ignore
 from sklearn.linear_model import LogisticRegression  # type: ignore
 from sklearn.svm import LinearSVC  # type: ignore
 
+from ..experiment_tracker import set_standard_tags
+
 
 class LogisticRegressionModel:
     """Logistic Regression with TF-IDF features."""
@@ -88,11 +90,14 @@ class LogisticRegressionModel:
                 )
                 mlflow.log_metric("f1", f1_score(y_test, y_pred, zero_division="warn"))
 
-            # Log tags
-            mlflow.set_tag("model_type", "logistic_regression")
-            mlflow.set_tag("framework", "sklearn")
-            mlflow.set_tag("dataset_version", dataset_version)
-            mlflow.set_tag("preprocessing_config", preprocessing_config)
+            # Set standardized tags
+            set_standard_tags(
+                run=run,
+                model_type="logistic_regression",
+                dataset_version=dataset_version,
+                preprocessing_config=preprocessing_config,
+                framework="sklearn",
+            )
 
             return run.info.run_id
 
@@ -180,10 +185,14 @@ class SVMModel:
                 )
                 mlflow.log_metric("f1", f1_score(y_test, y_pred, zero_division="warn"))
 
-            mlflow.set_tag("model_type", "svm")
-            mlflow.set_tag("framework", "sklearn")
-            mlflow.set_tag("dataset_version", dataset_version)
-            mlflow.set_tag("preprocessing_config", preprocessing_config)
+            # Set standardized tags
+            set_standard_tags(
+                run=run,
+                model_type="svm",
+                dataset_version=dataset_version,
+                preprocessing_config=preprocessing_config,
+                framework="sklearn",
+            )
 
             return run.info.run_id
 
@@ -270,10 +279,14 @@ class RandomForestModel:
                 )
                 mlflow.log_metric("f1", f1_score(y_test, y_pred, zero_division="warn"))
 
-            mlflow.set_tag("model_type", "random_forest")
-            mlflow.set_tag("framework", "sklearn")
-            mlflow.set_tag("dataset_version", dataset_version)
-            mlflow.set_tag("preprocessing_config", preprocessing_config)
+            # Set standardized tags
+            set_standard_tags(
+                run=run,
+                model_type="random_forest",
+                dataset_version=dataset_version,
+                preprocessing_config=preprocessing_config,
+                framework="sklearn",
+            )
 
             return run.info.run_id
 
@@ -369,10 +382,14 @@ class XGBoostModel:
                 )
                 mlflow.log_metric("f1", f1_score(y_test, y_pred, zero_division="warn"))
 
-            mlflow.set_tag("model_type", "xgboost")
-            mlflow.set_tag("framework", "xgboost")
-            mlflow.set_tag("dataset_version", dataset_version)
-            mlflow.set_tag("preprocessing_config", preprocessing_config)
+            # Set standardized tags
+            set_standard_tags(
+                run=run,
+                model_type="xgboost",
+                dataset_version=dataset_version,
+                preprocessing_config=preprocessing_config,
+                framework="xgboost",
+            )
 
             return run.info.run_id
 

@@ -26,6 +26,8 @@ from transformers import (
     XLNetForSequenceClassification,
 )
 
+from ..experiment_tracker import set_standard_tags
+
 # TensorFlow availability
 try:
     import tensorflow as tf  # type: ignore  # noqa: F401  # pyright: ignore[reportMissingImports]
@@ -571,12 +573,15 @@ class TransformerModel:
                     ),
                 )
 
-            # Set tags
-            mlflow.set_tag("framework", "transformers")
-            mlflow.set_tag("model_type", self._extract_model_type(self.model_name))
-            mlflow.set_tag("task", "text_classification")
-            mlflow.set_tag("dataset_version", dataset_version)
-            mlflow.set_tag("preprocessing_config", preprocessing_config)
+            # Set standardized tags
+            set_standard_tags(
+                run=run,
+                model_type=self._extract_model_type(self.model_name),
+                dataset_version=dataset_version,
+                preprocessing_config=preprocessing_config,
+                framework="transformers",
+                task="text_classification",
+            )
 
             return run.info.run_id
 
