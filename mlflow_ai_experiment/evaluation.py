@@ -1,50 +1,118 @@
 """
-Evaluation metrics for classification models.
+Comprehensive evaluation metrics for classification models.
+
+This module provides a unified interface for evaluating both classical ML
+and transformer models, with support for:
+- Standard metrics: accuracy, precision, recall, F1, specificity, MCC
+- Advanced metrics: AUC-ROC, log loss, confusion matrix
+- Performance metrics: inference latency, memory footprint
+- MLflow logging with consistent naming
+- Cross-validation support
 """
 
 import time
-
+import psutil
 import mlflow
+import numpy as np
+from typing import Any, Dict, Optional, Tuple, List
 from sklearn.metrics import (  # type: ignore
     accuracy_score,
     confusion_matrix,
     f1_score,
     precision_score,
     recall_score,
+    roc_auc_score,
+    log_loss,
+    matthews_corrcoef,
+    recall_score,
+    average_precision_score,
 )
 
 
-def compute_metrics(y_true, y_pred, y_proba=None):
+def compute_metrics(
+    y_true: np.ndarray,
+    y_pred: np.ndarray,
+    y_proba: Optional[np.ndarray] = None,
+    average: str = "binary",
+) -> Dict[str, Any]:
     """
-    Compute comprehensive evaluation metrics.
+    Compute comprehensive evaluation metrics for classification.
 
     Args:
-        y_true: True labels
-        y_pred: Predicted labels
-        y_proba: Prediction probabilities (optional)
+        y_true: True labels (array-like)
+        y_pred: Predicted labels (array-like)
+        y_proba: Prediction probabilities (array-like, shape=(n_samples, n_classes))
+        average: Averaging method for multi-class ('binary', 'macro', 'micro', 'weighted')
 
     Returns:
-        Dictionary with all metrics
+        Dictionary with all computed metrics
     """
-    metrics = {
-        "accuracy": accuracy_score(y_true, y_pred),
-        "precision": precision_score(y_true, y_pred, average="binary"),
-        "recall": recall_score(y_true, y_pred, average="binary"),
-        "f1": f1_score(y_true, y_pred, average="binary"),
-    }
+    metrics: Dict[str, Any] = {}
+
+    # Basic metrics
+    metrics["accuracy"] = float(accuracy_score(y_true, y_pred))
+    metrics["precision"] = float(
+        precision_score(y_true, y_pred, average=average, zero_division="warn")
+    )
+    metrics["recall"] = float(
+        recall_score(y_true, y_pred, average=average, zero_division="warn")
+    )
+    metrics["f1"] = float(
+        f1_score(y_true, y_pred, average=average, zero_division="warn")
+    )
+
+    # Specificity (true negative rate) - only for binary
+    if average == "binary" or len(np.unique(y_true)) == 2:
+        cm = confusion_matrix(y_true, y_pred)
+        if cm.shape == (2, 2):
+            tn, fp, fn, tp = cm.ravel()
+            specificity = tn / (tn + fp) if (tn + fp) > 0 else 0.0
+            metrics["specificity"] = float(specificity)
+
+    # Matthews Correlation Coefficient
+    metrics["mcc"] = float(matthews_corrcoef(y_true, y_pred))
 
     # Confusion matrix
     cm = confusion_matrix(y_true, y_pred)
     metrics["confusion_matrix"] = cm.tolist()
 
-    # Additional metrics if probabilities available
+    # Probability-based metrics (if available)
     if y_proba is not None:
-        # Log loss (cross-entropy)
-        from sklearn.metrics import log_loss
-
         try:
-            metrics["log_loss"] = log_loss(y_true, y_proba)
-        except Exception:
+            # Log loss (cross-entropy)
+            metrics["log_loss"] = float(log_loss(y_true, y_proba))
+
+            # AUC-ROC (binary case or one-vs-rest for multi-class)
+            n_classes = y_proba.shape[1] if y_proba.ndim > 1 else 2
+            if n_classes == 2:
+                # For binary, use probability of positive class
+                if y_proba.ndim > 1:
+                    y_proba_pos = y_proba[:, 1]
+                else:
+                    y_proba_pos = y_proba
+                metrics["auc_roc"] = float(roc_auc_score(y_true, y_proba_pos))
+            else:
+                # Multi-class: use one-vs-rest
+                metrics["auc_roc"] = float(
+                    roc_auc_score(y_true, y_proba, multi_class="ovr", average=average)
+                )
+
+            # Average Precision (AP)
+            if n_classes == 2:
+                if y_proba.ndim > 1:
+                    y_proba_pos = y_proba[:, 1]
+                else:
+                    y_proba_pos = y_proba
+                metrics["average_precision"] = float(
+                    average_precision_score(y_true, y_proba_pos)
+                )
+            else:
+                metrics["average_precision"] = float(
+                    average_precision_score(y_true, y_proba, average=average)
+                )
+
+        except Exception as e:
+            # Some metrics may fail for various reasons (e.g., only one class present)
             pass
 
     return metrics
