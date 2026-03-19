@@ -36,7 +36,7 @@
   - Deliverable: `src/experiment_tracker.py` with experiment management functions, automated tagging system, and artifact storage structure in `artifacts/`
 - [x] Design hyperparameter optimization framework: Integrate Optuna or Ray Tune with MLFlow for automated hyperparameter search across all models, define search spaces for each model architecture
   - Deliverable: `src/hyperopt.py` with optimization loops, search space definitions in `config/hyperparams/`, script `scripts/run_hyperopt.py`, and example results
-- [ ] Implement automated model evaluation suite: Create evaluation script that computes all metrics (accuracy, precision, recall, F1, confusion matrix, inference latency, memory footprint) and logs them consistently
+- [x] Implement automated model evaluation suite: Create evaluation script that computes all metrics (accuracy, precision, recall, F1, confusion matrix, inference latency, memory footprint) and logs them consistently
   - Deliverable: `src/evaluation.py` with comprehensive metrics calculation, `scripts/evaluate_all.py` for batch evaluation, standardized MLFlow metrics naming, and comparison tables generation
 - [ ] Build analysis and visualization dashboards: Create Jupyter notebooks and Streamlit/Plotly Dash app for interactive comparison of all models, metric correlation analysis, and statistical significance testing
   - Deliverable: Interactive dashboard `app/dashboard.py` or `notebooks/analysis.ipynb`, comparison visualizations (bar charts, ROC curves, latency vs accuracy plots), statistical test results in `docs/model_comparison.md`

@@ -143,9 +143,31 @@ The transformer models are implemented in `src/models/transformers.py` with:
 - Automatic MLflow logging with transformers flavor
 
 ### Evaluating Models
+
+The project includes a comprehensive automated evaluation suite that computes all metrics (accuracy, precision, recall, F1, confusion matrix, inference latency, memory footprint) and logs them consistently.
+
+#### Single Model Evaluation
 ```bash
 python src/evaluate.py --model-path models/best_model/
 ```
+
+#### Batch Evaluation & Comparison
+Evaluate all models from an MLflow experiment and generate comparison tables:
+```bash
+python scripts/evaluate_all.py \
+  --experiment-name "my_experiment" \
+  --test-data data/test.csv \
+  --output-dir comparison_results
+```
+
+Or evaluate specific runs:
+```bash
+python scripts/evaluate_all.py \
+  --run-ids <run_id1> <run_id2> \
+  --test-data data/test.csv
+```
+
+All results are automatically logged to MLflow and saved as CSV/JSON comparison tables.
 
 ## Data Pipeline Performance Benchmark
 
