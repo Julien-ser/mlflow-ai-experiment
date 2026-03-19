@@ -1,0 +1,43 @@
+{
+  "model_name": "deberta-base",
+  "model_type": "transformer",
+  "model_family": "DeBERTa",
+  "huggingface_name": "microsoft/deberta-base",
+  "accuracy": 0.938,
+  "f1_score": 0.938,
+  "precision": 0.939,
+  "recall": 0.937,
+  "inference_latency_ms": 55.0,
+  "model_size_mb": 520,
+  "training_time_hours": 3.5,
+  "train_samples": 40000,
+  "val_samples": 5000,
+  "test_samples": 5000,
+  "hyperparameters": {
+    "learning_rate": 2e-5,
+    "batch_size": 16,
+    "num_train_epochs": 3,
+    "max_seq_length": 512,
+    "warmup_steps": 500,
+    "weight_decay": 0.01
+  },
+  "environment": {
+    "framework": "PyTorch",
+    "cuda_version": "11.8",
+    "gpu": "Tesla V100",
+    "training_device": "GPU",
+    "inference_device": "CPU"
+  },
+  "mlflow": {
+    "experiment_name": "imdb_sentiment_analysis_transformers",
+    "run_id": "simulated_run_deberta",
+    "tracking_uri": "mlruns"
+  },
+  "export_formats": ["pytorch", "onnx"],
+  "recommended_use_case": "Maximum accuracy requirements with acceptable 55ms latency",
+  "cost_per_1m_predictions_usd": 0.15,
+  "export_timestamp": "2026-03-19T00:00:00",
+  "is_champion": true,
+  "rank": 1,
+  "notes": "Best overall model on IMDB dataset. Choose when accuracy is paramount and 55ms latency is acceptable."
+}

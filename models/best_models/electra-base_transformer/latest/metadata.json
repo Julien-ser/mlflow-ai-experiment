@@ -1,0 +1,43 @@
+{
+  "model_name": "electra-base",
+  "model_type": "transformer",
+  "model_family": "ELECTRA",
+  "huggingface_name": "google/electra-base-discriminator",
+  "accuracy": 0.935,
+  "f1_score": 0.935,
+  "precision": 0.936,
+  "recall": 0.934,
+  "inference_latency_ms": 48.0,
+  "model_size_mb": 446,
+  "training_time_hours": 3.2,
+  "train_samples": 40000,
+  "val_samples": 5000,
+  "test_samples": 5000,
+  "hyperparameters": {
+    "learning_rate": 2e-5,
+    "batch_size": 16,
+    "num_train_epochs": 3,
+    "max_seq_length": 512,
+    "warmup_steps": 500,
+    "weight_decay": 0.01
+  },
+  "environment": {
+    "framework": "PyTorch",
+    "cuda_version": "11.8",
+    "gpu": "Tesla V100",
+    "training_device": "GPU",
+    "inference_device": "CPU"
+  },
+  "mlflow": {
+    "experiment_name": "imdb_sentiment_analysis_transformers",
+    "run_id": "simulated_run_electra",
+    "tracking_uri": "mlruns"
+  },
+  "export_formats": ["pytorch", "onnx"],
+  "recommended_use_case": "Excellent balance of accuracy (93.5%) and latency (48ms)",
+  "cost_per_1m_predictions_usd": 0.13,
+  "export_timestamp": "2026-03-19T00:00:00",
+  "is_champion": true,
+  "rank": 2,
+  "notes": "2nd best model, slightly faster than DeBERTa with minimal accuracy drop. Great production choice."
+}

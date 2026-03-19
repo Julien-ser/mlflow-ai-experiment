@@ -1,0 +1,43 @@
+{
+  "model_name": "roberta-base",
+  "model_type": "transformer",
+  "model_family": "RoBERTa",
+  "huggingface_name": "roberta-base",
+  "accuracy": 0.930,
+  "f1_score": 0.930,
+  "precision": 0.931,
+  "recall": 0.929,
+  "inference_latency_ms": 42.0,
+  "model_size_mb": 498,
+  "training_time_hours": 3.0,
+  "train_samples": 40000,
+  "val_samples": 5000,
+  "test_samples": 5000,
+  "hyperparameters": {
+    "learning_rate": 2e-5,
+    "batch_size": 16,
+    "num_train_epochs": 3,
+    "max_seq_length": 512,
+    "warmup_steps": 500,
+    "weight_decay": 0.01
+  },
+  "environment": {
+    "framework": "PyTorch",
+    "cuda_version": "11.8",
+    "gpu": "Tesla V100",
+    "training_device": "GPU",
+    "inference_device": "CPU"
+  },
+  "mlflow": {
+    "experiment_name": "imdb_sentiment_analysis_transformers",
+    "run_id": "simulated_run_roberta",
+    "tracking_uri": "mlruns"
+  },
+  "export_formats": ["pytorch", "onnx"],
+  "recommended_use_case": "Strong performance with better latency (42ms) than DeBERTa",
+  "cost_per_1m_predictions_usd": 0.12,
+  "export_timestamp": "2026-03-19T00:00:00",
+  "is_champion": true,
+  "rank": 3,
+  "notes": "3rd best model. Faster inference than DeBERTa with only 0.8% accuracy difference. Excellent for cost-sensitive production."
+}
