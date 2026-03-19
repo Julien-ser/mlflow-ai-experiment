@@ -140,7 +140,42 @@ The transformer models are implemented in `src/models/transformers.py` with:
 - Specific wrappers: `BERTModel`, `RoBERTaModel`, `DeBERTaModel`, `XLNetModel`
 - Factory functions: `create_transformer_model()` and `create_transformer_model_from_name()`
 - Support for custom classification heads with configurable dropout
-- Automatic MLflow logging with transformers flavor
+ - Automatic MLflow logging with transformers flavor
+
+### Viewing Dashboards & Analysis
+
+#### Interactive Streamlit Dashboard
+An interactive dashboard for model comparison and analysis:
+```bash
+streamlit run app/dashboard.py
+```
+Then open http://localhost:8501 in your browser.
+
+The dashboard provides:
+- Performance comparison across all models (bar charts)
+- Latency vs accuracy trade-off analysis
+- Model size vs performance visualizations
+- Metric correlation heatmaps
+- Statistical significance testing (Friedman test, bootstrap CIs)
+- Exportable results tables
+
+**Note**: The dashboard automatically loads data from MLflow. If insufficient data exists, it will display sample data for demonstration.
+
+#### Jupyter Notebook Analysis
+For detailed exploratory analysis:
+```bash
+jupyter lab notebooks/analysis.ipynb
+```
+
+The analysis notebook includes:
+- Comprehensive data exploration
+- Statistical testing (Friedman, Nemenyi, bootstrap)
+- Correlation analysis
+- Production deployment recommendations
+- Key insights and visualizations
+
+#### Documentation
+Detailed model comparison report: [docs/model_comparison.md](docs/model_comparison.md)
 
 ### Evaluating Models
 
