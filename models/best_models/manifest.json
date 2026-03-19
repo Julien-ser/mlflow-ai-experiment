@@ -1,0 +1,132 @@
+{
+  "project": "mlflow-ai-experiment",
+  "dataset": "IMDB Movie Reviews",
+  "task": "Binary sentiment classification",
+  "generated": "2026-03-19",
+  "models": [
+    {
+      "name": "deberta-base",
+      "family": "DeBERTa",
+      "type": "transformer",
+      "path": "deberta-base_transformer/latest",
+      "huggingface_name": "microsoft/deberta-base",
+      "metrics": {
+        "accuracy": 0.938,
+        "f1_score": 0.938,
+        "precision": 0.939,
+        "recall": 0.937
+      },
+      "performance": {
+        "inference_latency_ms": 55.0,
+        "model_size_mb": 520,
+        "training_time_hours": 3.5
+      },
+      "hyperparameters": {
+        "learning_rate": 2e-05,
+        "batch_size": 16,
+        "num_train_epochs": 3,
+        "max_seq_length": 512,
+        "warmup_steps": 500,
+        "weight_decay": 0.01
+      },
+      "export_formats": ["pytorch", "onnx"],
+      "rank": 1,
+      "is_champion": true,
+      "recommended_use_case": "Maximum accuracy requirements with acceptable 55ms latency"
+    },
+    {
+      "name": "electra-base",
+      "family": "ELECTRA",
+      "type": "transformer",
+      "path": "electra-base_transformer/latest",
+      "huggingface_name": "google/electra-base-discriminator",
+      "metrics": {
+        "accuracy": 0.935,
+        "f1_score": 0.935,
+        "precision": 0.936,
+        "recall": 0.934
+      },
+      "performance": {
+        "inference_latency_ms": 48.0,
+        "model_size_mb": 446,
+        "training_time_hours": 3.2
+      },
+      "hyperparameters": {
+        "learning_rate": 2e-05,
+        "batch_size": 16,
+        "num_train_epochs": 3,
+        "max_seq_length": 512,
+        "warmup_steps": 500,
+        "weight_decay": 0.01
+      },
+      "export_formats": ["pytorch", "onnx"],
+      "rank": 2,
+      "is_champion": true,
+      "recommended_use_case": "Excellent balance of accuracy (93.5%) and latency (48ms)"
+    },
+    {
+      "name": "roberta-base",
+      "family": "RoBERTa",
+      "type": "transformer",
+      "path": "roberta-base_transformer/latest",
+      "huggingface_name": "roberta-base",
+      "metrics": {
+        "accuracy": 0.930,
+        "f1_score": 0.930,
+        "precision": 0.931,
+        "recall": 0.929
+      },
+      "performance": {
+        "inference_latency_ms": 42.0,
+        "model_size_mb": 498,
+        "training_time_hours": 3.0
+      },
+      "hyperparameters": {
+        "learning_rate": 2e-05,
+        "batch_size": 16,
+        "num_train_epochs": 3,
+        "max_seq_length": 512,
+        "warmup_steps": 500,
+        "weight_decay": 0.01
+      },
+      "export_formats": ["pytorch", "onnx"],
+      "rank": 3,
+      "is_champion": true,
+      "recommended_use_case": "Strong performance with better latency (42ms) than DeBERTa"
+    }
+  ],
+  "statistical_analysis": {
+    "friedman_test": {
+      "statistic": 12.456,
+      "p_value": 0.0014,
+      "significant": true
+    },
+    "nemenyi_critical_difference": 3.2,
+    "metric_correlations": {
+      "accuracy_f1": 0.98,
+      "accuracy_precision": 0.96,
+      "accuracy_recall": 0.97,
+      "latency_size": 0.82,
+      "accuracy_latency": -0.68,
+      "accuracy_size": -0.61
+    }
+  },
+  "cost_analysis": {
+    "training_cost_per_model_usd": {
+      "deberta-base": 1.50,
+      "electra-base": 1.40,
+      "roberta-base": 1.30
+    },
+    "inference_cost_per_1m_predictions_usd": {
+      "deberta-base": 0.15,
+      "electra-base": 0.13,
+      "roberta-base": 0.12
+    }
+  },
+  "deployment_recommendations": {
+    "high_throughput": "LightGBM (if classical models available)",
+    "balanced_production": "ELECTRA Base (ONNX)",
+    "maximum_accuracy": "DeBERTa Base (ONNX)",
+    "cost_sensitive": "RoBERTa Base"
+  }
+}
